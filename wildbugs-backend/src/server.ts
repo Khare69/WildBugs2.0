@@ -1,11 +1,9 @@
-import dotenv from 'dotenv';
+import env from './config/env';
 import app from './app';
 
-dotenv.config();
-
-const PORT = process.env.PORT || 3001;
+const PORT = env.PORT;
 
 app.listen(PORT, () => {
-  console.log(`[wildbugs-backend] Server is running on port ${PORT}`);
+  console.log(`[wildbugs-backend] Server is running on port ${PORT} [${env.NODE_ENV}]`);
   console.log(`[wildbugs-backend] Health probe available at http://localhost:${PORT}/api/health`);
 });
