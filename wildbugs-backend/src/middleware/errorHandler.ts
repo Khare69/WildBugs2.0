@@ -40,7 +40,17 @@ export const errorHandler: ErrorRequestHandler = (
     return;
   }
 
-  // 2. Handle Zod Schema Validation Errors
+  // 2. Handle Body Parser JSON Syntax Errors
+  if (err instanceof SyntaxError && 'status' in err && (err as any).status === 400 && 'body' in err) {
+    res.status(400).json({
+      status: 'fail',
+      message: 'Invalid JSON format in request payload',
+      error: 'Malformed JSON payload',
+    });
+    return;
+  }
+
+  // 3. Handle Zod Schema Validation Errors
   if (err instanceof ZodError) {
     const formatted = err.errors.map((e) => ({
       field: e.path.join('.'),

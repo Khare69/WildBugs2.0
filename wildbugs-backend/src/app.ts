@@ -2,6 +2,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { NotFoundError } from './utils/errors';
 import errorHandler from './middleware/errorHandler';
+import authRoutes from './routes/authRoutes';
 
 const app: Express = express();
 
@@ -17,6 +18,9 @@ app.get('/api/health', (_req: Request, res: Response) => {
     service: 'wildbugs-api',
   });
 });
+
+// Mount Feature API Routes
+app.use('/api/auth', authRoutes);
 
 // 404 Catch-All Handler for Undefined Routes
 app.all('*', (req: Request, _res: Response, next: NextFunction) => {
