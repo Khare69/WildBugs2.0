@@ -100,21 +100,36 @@
 ---
 
 #### Sub-Phase 1.4: Authentication & Authorization Flow
-- **Status**: ⏳ Pending
+- **Status**: ✅ Completed
 - **Tasks**:
-  - Task 1.4.1: Auth backend service & middleware
-  - Task 1.4.2: Auth controller & routes (`/register`, `/login`)
-  - Task 1.4.3: Auth frontend store (Zustand), Axios interceptors, and UI views
+  - Task 1.4.1: Auth backend service & middleware (`authService.ts`, `authenticate.ts`, `express.d.ts`)
+  - Task 1.4.2: Auth controller & routes (`/api/auth/register`, `/api/auth/login`, `/api/auth/me`)
+  - Task 1.4.3: Auth frontend store (Zustand in-memory store), Axios interceptors, LoginForm, RegisterForm, ProtectedRoute, and auth pages
 - **🛠️ Changes Performed**:
-  - *Pending execution*
+  - Implemented `authService.ts` providing secure `registerUser`, `loginUser`, and `getUserById` with bcryptjs password hashing (10 salt rounds) and JWT signing with configurable expiration.
+  - Authored `authenticate.ts` JWT verification middleware extracting `Bearer <token>` headers, decoding payloads, and attaching `req.user`.
+  - Added TypeScript namespace extension in `src/types/express.d.ts` declaring `req.user` payload structure.
+  - Created `authController.ts` and `authRoutes.ts` with strict Zod validation schemas for registration (email, password min 8 characters, display name 2-50 chars) and login.
+  - Wired `/api/auth` into main Express router in `app.ts`.
+  - Created client-side `authStore.ts` using Zustand to store JWT tokens and user profile securely in memory (mitigating XSS token extraction).
+  - Updated Axios client in `src/api/client.ts` with request interceptor dynamically injecting Bearer token and response interceptor clearing auth state on 401.
+  - Built `LoginForm.tsx` and `RegisterForm.tsx` components with dark nature styling, validation feedback, and clean state handling.
+  - Built `ProtectedRoute.tsx` route guard preserving redirection location state.
+  - Integrated `/login` and `/register` routes into `App.tsx` with user session indicator in header navigation.
 - **🐛 Bugs Discovered**:
-  - *None yet*
+  - Vite `verbatimModuleSyntax` TS1484 compiler error: TypeScript under Vite strict module syntax prevented importing TypeScript types (`AuthResponse`, `MeResponse`, `User`) as value imports in `authApi.ts`, `useAuth.ts`, and `authStore.ts`.
 - **🔧 Errors Resolved**:
-  - *None yet*
+  - Converted all interface and type imports in frontend auth files to `import type { ... }` ensuring compatibility with Vite/Rollup bundler and TS 5.x verbatimModuleSyntax.
 - **🔄 Methods Replaced / Refactored**:
-  - *None yet*
+  - Replaced persistent browser `localStorage` auth token storage with in-memory Zustand store to eliminate persistent XSS vulnerability vectors.
+  - Replaced ad-hoc error reporting with unified `AppError` and `asyncHandler` envelope in auth controllers.
 - **📝 Verification Actions & Test Results**:
-  - *Target: User registers, receives JWT, stores auth in Zustand, accesses protected routes.*
+  - Backend Build: `npm run build` compiled cleanly without TypeScript errors.
+  - Frontend Build: `npm run build` compiled into production bundle in `dist/` with 0 errors (`135 modules transformed`).
+  - Git Commits:
+    - `d3139d4`: `feat(auth): implement password hashing, jwt signing, and auth middleware`
+    - `1595f8b`: `feat(auth): add register and login endpoints with zod request validation`
+    - `6b3d5cd`: `feat(auth-ui): create zustand auth store, axios interceptors, and login/register views`
 
 ---
 
