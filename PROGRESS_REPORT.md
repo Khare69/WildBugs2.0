@@ -75,19 +75,27 @@
 ---
 
 #### Sub-Phase 1.3: Core Backend Utilities & Error Infrastructure
-- **Status**: ⏳ Pending
+- **Status**: ✅ Completed
 - **Tasks**:
-  - Task 1.3.1: Environment variable validation (`src/config/env.ts`), custom errors (`src/utils/errors.ts`), and global error handler
+  - Task 1.3.1: Environment variable validation (`src/config/env.ts`), custom errors (`src/utils/errors.ts`), global error handler (`src/middleware/errorHandler.ts`), and route integration (`src/app.ts`, `src/server.ts`)
 - **🛠️ Changes Performed**:
-  - *Pending execution*
+  - Created `src/config/env.ts` with Zod schema validating `PORT`, `NODE_ENV`, `DATABASE_URL`, `JWT_SECRET` (min 16 chars), `JWT_EXPIRES_IN`, and `CORS_ORIGIN`, providing structured error output on missing variables.
+  - Created `src/utils/errors.ts` implementing `AppError` base class and specialized subclasses (`NotFoundError`, `ValidationError`, `UnauthorizedError`, `ForbiddenError`, `ConflictError`, `InternalServerError`) with HTTP status codes and operational flags.
+  - Created `src/middleware/errorHandler.ts` handling `AppError`, `ZodError`, and unhandled 500 exceptions, returning standardized JSON error envelopes and omitting stack traces in production.
+  - Implemented `asyncHandler` higher-order function to wrap async Express controllers and forward unhandled promise rejections to the error pipeline.
+  - Updated `src/app.ts` with a 404 catch-all route handler forwarding `NotFoundError` to the centralized error middleware.
+  - Updated `src/server.ts` to consume validated configuration directly from `src/config/env.ts`.
 - **🐛 Bugs Discovered**:
-  - *None yet*
+  - None during implementation; initial port and schema tests verified.
 - **🔧 Errors Resolved**:
-  - *None yet*
+  - None required.
 - **🔄 Methods Replaced / Refactored**:
-  - *None yet*
+  - Replaced ad-hoc `process.env` access in `server.ts` with strict, validated configuration parsing via Zod.
 - **📝 Verification Actions & Test Results**:
-  - *Target: Undefined route triggers 404 AppError JSON response.*
+  - Build Validation: `npm run build` compiled without warnings or type errors.
+  - Health Route Verification: `GET /api/health` returned HTTP 200 with JSON payload `{"status":"ok","timestamp":"...","service":"wildbugs-api"}`.
+  - Error Handler Verification: `curl.exe -i http://localhost:3001/api/undefined-test-route` returned HTTP 404 with JSON envelope `{"status":"fail","message":"Cannot GET /api/undefined-test-route"}` (not generic HTML).
+  - Git Commit: `3298a7f` (`feat(backend): implement zod env validation, custom app errors, and global error handler`).
 
 ---
 
