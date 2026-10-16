@@ -1,0 +1,131 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  EXPERT
+  ADMIN
+}
+
+enum SightingStatus {
+  PENDING
+  IDENTIFIED
+  VERIFIED
+  REJECTED
+}
+
+enum IdentificationSource {
+  AI
+  USER
+  EXPERT
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  displayName  String
+  avatarUrl    String?
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sightings       Sighting[]
+  identifications Identification[]
+  userBadges      UserBadge[]
+
+  @@map("users")
+}
+
+model Species {
+  id                 Int      @id @default(autoincrement())
+  commonName         String
+  scientificName     String
+  family             String
+  description        String   @db.Text
+  habitat            String   @db.Text
+  diet               String   @db.Text
+  lifecycle          String   @db.Text
+  imageUrl           String
+  conservationStatus String
+  createdAt          DateTime @default(now())
+
+  sightings       Sighting[]
+  identifications Identification[]
+
+  @@map("species")
+}
+
+model Sighting {
+  id           String         @id @default(uuid())
+  userId       String
+  speciesId    Int?
+  photoUrl     String
+  thumbnailUrl String?
+  latitude     Float
+  longitude    Float
+  aiConfidence Float?
+  status       SightingStatus @default(PENDING)
+  observedAt   DateTime       @default(now())
+  createdAt    DateTime       @default(now())
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  species         Species?         @relation(fields: [speciesId], references: [id], onDelete: SetNull)
+  identifications Identification[]
+
+  @@index([userId])
+  @@index([speciesId])
+  @@index([latitude, longitude])
+  @@map("sightings")
+}
+
+model Identification {
+  id         String               @id @default(uuid())
+  sightingId String
+  userId     String
+  speciesId  Int
+  source     IdentificationSource
+  confidence Float
+  isAccepted Boolean              @default(false)
+  createdAt  DateTime             @default(now())
+
+  sighting Sighting @relation(fields: [sightingId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  species  Species  @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+
+  @@index([sightingId])
+  @@index([userId])
+  @@index([speciesId])
+  @@map("identifications")
+}
+
+model Badge {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String
+  iconUrl     String
+  criteria    Json
+  createdAt   DateTime @default(now())
+
+  userBadges UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  userId   String
+  badgeId  Int
+  earnedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, badgeId])
+  @@map("user_badges")
+}
