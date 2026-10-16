@@ -1,7 +1,10 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from './api/client';
+import { useAuth } from './hooks/useAuth';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 
 // Health Check Query Hook using TanStack Query
 const useApiHealth = () => {
@@ -15,6 +18,8 @@ const useApiHealth = () => {
 };
 
 const Navigation: React.FC = () => {
+  const { user, isAuthenticated, logout } = useAuth();
+
   return (
     <header style={{
       display: 'flex',
@@ -30,9 +35,9 @@ const Navigation: React.FC = () => {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <span style={{ fontSize: '1.75rem' }}>🪲</span>
-        <span style={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.02em', color: '#f0fdf4' }}>
+        <Link to="/" style={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.02em', color: '#f0fdf4' }}>
           WildBugs <span style={{ color: '#10b981', fontSize: '0.9rem', verticalAlign: 'super' }}>2.0</span>
-        </span>
+        </Link>
       </div>
 
       <nav style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
@@ -56,19 +61,69 @@ const Navigation: React.FC = () => {
         >
           Species
         </NavLink>
-        <NavLink 
-          to="/login" 
-          style={({ isActive }) => ({
-            padding: '0.45rem 1.1rem',
-            borderRadius: '8px',
-            backgroundColor: isActive ? '#059669' : '#10b981',
-            color: '#ffffff',
-            fontWeight: 600,
-            transition: 'background 0.2s',
-          })}
-        >
-          Sign In
-        </NavLink>
+
+        {isAuthenticated && user ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #10b981, #047857)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                color: '#ffffff'
+              }}>
+                {user.displayName.charAt(0).toUpperCase()}
+              </div>
+              <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#f0fdf4' }}>
+                {user.displayName}
+              </span>
+              <span style={{
+                fontSize: '0.75rem',
+                padding: '2px 8px',
+                borderRadius: '9999px',
+                background: 'rgba(52, 211, 153, 0.2)',
+                color: '#34d399',
+                fontWeight: 600
+              }}>
+                {user.role}
+              </span>
+            </div>
+            <button
+              onClick={logout}
+              style={{
+                padding: '0.4rem 0.9rem',
+                borderRadius: '8px',
+                background: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#fca5a5',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                transition: 'background 0.2s'
+              }}
+            >
+              Sign Out
+            </button>
+          </div>
+        ) : (
+          <NavLink 
+            to="/login" 
+            style={({ isActive }) => ({
+              padding: '0.45rem 1.1rem',
+              borderRadius: '8px',
+              backgroundColor: isActive ? '#059669' : '#10b981',
+              color: '#ffffff',
+              fontWeight: 600,
+              transition: 'background 0.2s',
+            })}
+          >
+            Sign In
+          </NavLink>
+        )}
       </nav>
     </header>
   );
@@ -76,13 +131,14 @@ const Navigation: React.FC = () => {
 
 const HomePage: React.FC = () => {
   const { data: health, isLoading, isError } = useApiHealth();
+  const { user, isAuthenticated } = useAuth();
 
   return (
     <main style={{ maxWidth: '1000px', margin: '3rem auto', padding: '0 1.5rem' }}>
       <section className="glass-panel" style={{ padding: '3rem 2rem', textAlign: 'center', marginBottom: '2.5rem' }}>
         <div className="badge-status" style={{ marginBottom: '1.25rem' }}>
           <span className="status-dot"></span>
-          Sub-Phase 1.1 Scaffold Active
+          Sub-Phase 1.4 Auth Active
         </div>
 
         <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-0.03em' }}>
@@ -93,18 +149,35 @@ const HomePage: React.FC = () => {
           and interactive biodiversity mapping.
         </p>
 
+        {isAuthenticated && user && (
+          <div style={{
+            marginBottom: '1.75rem',
+            padding: '1rem 1.5rem',
+            borderRadius: '12px',
+            background: 'rgba(16, 185, 129, 0.12)',
+            border: '1px solid rgba(52, 211, 153, 0.3)',
+            display: 'inline-block'
+          }}>
+            <span style={{ color: '#f0fdf4', fontWeight: 600 }}>Active Observer Session:</span>{' '}
+            <span style={{ color: '#34d399' }}>{user.email}</span> ({user.role})
+          </div>
+        )}
+
         {/* Backend API Probe Status */}
         <div style={{
-          display: 'inline-flex',
+          display: 'flex',
           alignItems: 'center',
+          justifyContent: 'center',
           gap: '1rem',
           padding: '0.75rem 1.5rem',
           borderRadius: '12px',
           background: 'rgba(0, 0, 0, 0.35)',
           border: '1px solid rgba(52, 211, 153, 0.2)',
-          fontSize: '0.95rem'
+          fontSize: '0.95rem',
+          maxWidth: '400px',
+          margin: '0 auto'
         }}>
-          <span style={{ color: '#9ca3af' }}>Backend API Status:</span>
+          <span style={{ color: '#9ca3af' }}>Backend API:</span>
           {isLoading && <span style={{ color: '#fbbf24' }}>Connecting...</span>}
           {isError && <span style={{ color: '#f87171' }}>Offline (Run backend on :3001)</span>}
           {health && (
@@ -150,28 +223,9 @@ const SpeciesPage: React.FC = () => {
       <section className="glass-panel" style={{ padding: '2.5rem', textAlign: 'center' }}>
         <h2 style={{ fontSize: '2rem', marginBottom: '1rem', color: '#f0fdf4' }}>Species Catalog</h2>
         <p style={{ color: '#a7f3d0', maxWidth: '600px', margin: '0 auto 1.5rem' }}>
-          Our species taxonomy database will be populated in Sub-Phase 1.2 with Prisma seeding and rendered in Sub-Phase 1.5.
+          Our species taxonomy database was populated in Sub-Phase 1.2 with Prisma seeding and will render in Sub-Phase 1.5.
         </p>
         <div className="badge-status">Coming in Sub-Phase 1.5</div>
-      </section>
-    </main>
-  );
-};
-
-const LoginPage: React.FC = () => {
-  return (
-    <main style={{ maxWidth: '440px', margin: '4rem auto', padding: '0 1.5rem' }}>
-      <section className="glass-panel" style={{ padding: '2.5rem' }}>
-        <h2 style={{ fontSize: '1.75rem', marginBottom: '0.5rem', textAlign: 'center', color: '#f0fdf4' }}>
-          Welcome Back
-        </h2>
-        <p style={{ color: '#a7f3d0', textAlign: 'center', marginBottom: '2rem', fontSize: '0.95rem' }}>
-          Sign in to access your field journal and submit insect sightings.
-        </p>
-        <div style={{ padding: '1.5rem', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', textAlign: 'center' }}>
-          <div className="badge-status" style={{ marginBottom: '0.75rem' }}>Sub-Phase 1.4</div>
-          <p style={{ color: '#6ee7b7', fontSize: '0.9rem' }}>JWT Auth flow & user credentials will be wired in Sub-Phase 1.4.</p>
-        </div>
       </section>
     </main>
   );
@@ -214,6 +268,7 @@ export const App: React.FC = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/species" element={<SpeciesPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </div>
