@@ -66,15 +66,19 @@ A template `.env.example` will be maintained as each module is developed. See [`
 
 ## 📜 Development & Git Protocol
 
-1. **Sub-Task Atomic Commits**: Every sub-task is followed immediately by an atomic git commit:
+1. **Sub-Task Atomic Commits**: Every sub-task is verified and followed immediately by an atomic git commit:
    ```bash
    git add .
    git commit -m "<type>(<scope>): <summary>"
    ```
 2. **Sub-Phase & Phase Progress Tracking**: Detailed logs of changes performed, bugs discovered, errors resolved, and methods refactored are recorded in [`PROGRESS_REPORT.md`](./PROGRESS_REPORT.md).
-3. **Phase Wrap-Up & Remote Push**:
+3. **Iterative Bug Sweep & Resolution Quality Gate (Zero-Bug Policy)**:
+   - At the completion of each phase, perform a thorough end-to-end audit of all endpoints, queries, logs, and UI states.
+   - Fix all bugs immediately. If an approach is fragile, defective, or slow, **replace or refactor it with a superior approach**.
+   - **Test repeatedly again and again** until all components function with zero runtime or logical errors.
+4. **Phase Wrap-Up & Remote Push**:
    ```bash
-   git add PROGRESS_REPORT.md README.md
-   git commit -m "docs: record Phase X progress report and update readme"
+   git add .
+   git commit -m "docs: complete Phase X bug audit, progress report, and readme"
    git push origin main
    ```

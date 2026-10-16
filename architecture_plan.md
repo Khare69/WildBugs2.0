@@ -540,12 +540,18 @@ wildbugs-backend/
 >      git add .
 >      git commit -m "<type>(<scope>): <concise imperative summary>"
 >      ```
-> 2. **Maintain a Living Progress Report (`PROGRESS_REPORT.md`)**:
+> 2. **Iterative Bug Sweeping & Re-Testing Quality Gate (Zero-Bug Policy)**:
+>    - At the completion of **every phase**, perform a rigorous end-to-end audit across all components created or modified:
+>      - Check server logs, database integrity, API responses, type correctness, and UI edge cases for errors and bugs.
+>      - Diagnose and resolve every discovered bug immediately.
+>      - If an existing method, library, or implementation is fragile, inefficient, or defective, **replace or refactor it with a superior approach**.
+>      - **Test iteratively again and again** until all components function seamlessly with zero runtime or logical errors. No phase is finished until this quality gate is 100% satisfied.
+> 3. **Maintain a Living Progress Report (`PROGRESS_REPORT.md`)**:
 >    - **Update after EVERY Sub-Phase**: Record all changes performed, bugs discovered, runtime/type errors resolved, methods replaced or refactored, and verification test outputs.
->    - **Update after EVERY Phase**: Summarize milestone achievements, database state, API endpoints, and system architecture status.
-> 3. **Update `README.md` after EVERY Phase Completion**:
+>    - **Update after EVERY Phase**: Summarize milestone achievements, database state, API endpoints, bug audit findings, and system architecture status.
+> 4. **Update `README.md` after EVERY Phase Completion**:
 >    - Keep project documentation in lockstep with working code. Document newly available features, environment variables, API endpoints, UI views, and testing instructions.
-> 4. **Push to Remote after EVERY Phase Completion**:
+> 5. **Push to Remote after EVERY Phase Completion**:
 >    - After completing, verifying, documenting, and committing all sub-phases within a phase, push all commits to GitHub:
 >      ```bash
 >      git push origin main
@@ -631,13 +637,18 @@ gantt
 | **1.5.2** Species UI Views | `speciesApi.ts`, `SpeciesCard.tsx`, `SpeciesListPage.tsx`, `SpeciesDetailPage.tsx` | Searchable species card grid using TanStack Query and comprehensive species detail page. | `git add . && git commit -m "feat(species-ui): build searchable species grid and detailed profile views"` |
 | **1.5.3** Responsive Layout | `Navbar.tsx`, `BottomNav.tsx`, `PageLayout.tsx`, `src/styles/index.css` | Desktop top navbar, mobile bottom navigation bar, layout wrapper, and CSS variable design tokens. | `git add . && git commit -m "feat(layout): implement responsive navbar, mobile bottom tabs, and design system tokens"` |
 
-##### 🏁 Phase 1 Completion Checklist (Docs & Remote Push)
+##### 🏁 Phase 1 Completion Checklist (Quality Gate, Docs & Remote Push)
+- [ ] **Iterative Bug Sweep & Resolution Quality Gate**:
+  - Run comprehensive test suites across backend endpoints (`/api/health`, `/api/auth/*`, `/api/species/*`) and frontend views.
+  - Inspect server logs, Prisma queries, and browser console for errors, unhandled rejections, or type warnings.
+  - Resolve all discovered bugs. If an initial approach is fragile or problematic, replace/refactor it with a superior solution.
+  - **Re-test iteratively again and again** until all components function with zero errors.
 - [ ] **Update `PROGRESS_REPORT.md`**: Record Phase 1 changes, bugs caught & resolved, methods replaced, and skeleton health.
 - [ ] **Update `README.md`**: Document current architecture, dev setup instructions, auth endpoints, and species catalog routes.
-- [ ] **Commit Documentation**:
+- [ ] **Commit Documentation & Verified Code**:
   ```bash
-  git add PROGRESS_REPORT.md README.md
-  git commit -m "docs: update progress report and readme for Phase 1 completion"
+  git add .
+  git commit -m "docs: complete Phase 1 bug audit, progress report, and readme"
   ```
 - [ ] **Push to Remote (`https://github.com/Khare69/WildBugs2.0.git`)**:
   ```bash
@@ -677,13 +688,18 @@ gantt
 | **2.4.1** Multi-Step Upload Form | `useGeolocation.ts`, `uploadStore.ts`, `UploadForm.tsx`, `UploadPage.tsx` | Step-by-step UI: capture photo → preview → auto-detect GPS location → upload with progress spinner. | `git add . && git commit -m "feat(upload-ui): build multi-step photo upload flow with automatic gps detection"` |
 | **2.4.2** Sighting Detail & AI Result | `IdentificationResult.tsx`, `SightingDetailPage.tsx` | View sighting photo, mini-map location pin, AI confidence bar, species identification card, and "Suggest Correction" trigger. | `git add . && git commit -m "feat(sighting-detail): display sighting details with ai confidence score and status badge"` |
 
-##### 🏁 Phase 2 Completion Checklist (Docs & Remote Push)
+##### 🏁 Phase 2 Completion Checklist (Quality Gate, Docs & Remote Push)
+- [ ] **Iterative Bug Sweep & Resolution Quality Gate**:
+  - Audit photo upload, client compression, Cloudinary upload limits, Redis queue processing, and Cloud Vision API response parsing.
+  - Check for unhandled exceptions during image parsing, Redis connectivity drops, or GPS null-island bugs (0,0 coords).
+  - Resolve all bugs; if an implementation approach (e.g. compression algorithm, worker retry strategy) is unstable, replace/refactor with a superior approach.
+  - **Re-test iteratively again and again** until uploads, background processing, and sighting detail pages render flawlessly with zero errors.
 - [ ] **Update `PROGRESS_REPORT.md`**: Record Phase 2 image upload pipeline, Cloud Vision matching, BullMQ workers, bugs & fixes.
 - [ ] **Update `README.md`**: Document Cloudinary setup, Redis requirement, Cloud Vision credentials, and sighting endpoints.
-- [ ] **Commit Documentation**:
+- [ ] **Commit Documentation & Verified Code**:
   ```bash
-  git add PROGRESS_REPORT.md README.md
-  git commit -m "docs: update progress report and readme for Phase 2 completion"
+  git add .
+  git commit -m "docs: complete Phase 2 bug audit, progress report, and readme"
   ```
 - [ ] **Push to Remote (`https://github.com/Khare69/WildBugs2.0.git`)**:
   ```bash
@@ -718,13 +734,18 @@ gantt
 | **3.3.2** Density Heatmap Layer | `src/components/map/HeatmapLayer.tsx` | Toggleable sighting density heat layer using `leaflet-heat`. | `git add . && git commit -m "feat(map-ui): add leaflet-heat layer for sighting density visualization"` |
 | **3.3.3** Map Filter Sidebar | `src/components/map/MapFilters.tsx` | Collapsible filter panel: species selector, date range picker, and layer switcher (Markers vs Heatmap). | `git add . && git commit -m "feat(map-ui): create filter drawer for species, date range, and layer switching"` |
 
-##### 🏁 Phase 3 Completion Checklist (Docs & Remote Push)
+##### 🏁 Phase 3 Completion Checklist (Quality Gate, Docs & Remote Push)
+- [ ] **Iterative Bug Sweep & Resolution Quality Gate**:
+  - Audit PostGIS spatial bounding box queries (`ST_MakeEnvelope`), GeoJSON serialization, Leaflet marker clustering, and heatmap rendering performance.
+  - Check for coordinate inversion bugs (lat/lng vs lng/lat), Leaflet map container resizing glitches on mobile, or query timeouts under dense marker sets.
+  - Resolve all bugs; if a map plugin or rendering technique causes lag or memory leaks, replace/refactor with an optimized approach.
+  - **Re-test iteratively again and again** until map panning, zoom clustering, heatmap toggling, and filter queries work smoothly with zero errors.
 - [ ] **Update `PROGRESS_REPORT.md`**: Record PostGIS spatial queries, clustering integration, heatmap performance, bugs & fixes.
 - [ ] **Update `README.md`**: Document map capabilities, PostGIS requirements, map query parameters, and Leaflet setup.
-- [ ] **Commit Documentation**:
+- [ ] **Commit Documentation & Verified Code**:
   ```bash
-  git add PROGRESS_REPORT.md README.md
-  git commit -m "docs: update progress report and readme for Phase 3 completion"
+  git add .
+  git commit -m "docs: complete Phase 3 bug audit, progress report, and readme"
   ```
 - [ ] **Push to Remote (`https://github.com/Khare69/WildBugs2.0.git`)**:
   ```bash
@@ -764,13 +785,18 @@ gantt
 | **4.4.2** Challenge Participation Endpoints | `challengeController.ts`, `challengeRoutes.ts` | `GET /api/challenges`, `POST /api/challenges/:id/join`, and `GET /api/challenges/:id/progress`. | `git add . && git commit -m "feat(challenges): implement join challenge and progress tracking endpoints"` |
 | **4.4.3** Challenges Catalog UI | `challengesApi.ts`, `ChallengeCard.tsx`, `ProgressBar.tsx`, `ChallengesPage.tsx` | List of seasonal challenges with countdown timer, join button, and animated completion progress bar. | `git add . && git commit -m "feat(challenges-ui): build seasonal challenges catalog with animated progress bars"` |
 
-##### 🏁 Phase 4 Completion Checklist (Docs & Remote Push)
+##### 🏁 Phase 4 Completion Checklist (Quality Gate, Docs & Remote Push)
+- [ ] **Iterative Bug Sweep & Resolution Quality Gate**:
+  - Audit streak calculation edge cases (timezones, missed days, same-day multiple uploads), Redis leaderboard sorting/pagination, badge rule triggers, and seasonal challenge join/progress updates.
+  - Check for race conditions in badge awarding, timezone inconsistencies in streak tracking, or progress calculation off-by-one errors.
+  - Resolve all bugs; if a streak calculation or leaderboard caching approach is unreliable, replace/refactor with a robust method.
+  - **Re-test iteratively again and again** until user journals, streak counts, leaderboard standings, badge awards, and challenge progress bars update accurately with zero errors.
 - [ ] **Update `PROGRESS_REPORT.md`**: Record badge engine rules, streak logic, Redis leaderboards, challenges system, bugs & fixes.
 - [ ] **Update `README.md`**: Document gamification rules, badge criteria, challenge endpoints, and profile journal features.
-- [ ] **Commit Documentation**:
+- [ ] **Commit Documentation & Verified Code**:
   ```bash
-  git add PROGRESS_REPORT.md README.md
-  git commit -m "docs: update progress report and readme for Phase 4 completion"
+  git add .
+  git commit -m "docs: complete Phase 4 bug audit, progress report, and readme"
   ```
 - [ ] **Push to Remote (`https://github.com/Khare69/WildBugs2.0.git`)**:
   ```bash
@@ -801,13 +827,18 @@ gantt
 | **5.3.1** Notification Engine Backend | `prisma/schema.prisma`, `notificationService.ts`, `notificationController.ts`, `notificationRoutes.ts` | Prisma `Notification` model, auto-dispatch on verification/badges/replies, `GET /api/notifications`, and mark-as-read endpoints. | `git add . && git commit -m "feat(notifications-api): implement notification generation and read status endpoints"` |
 | **5.3.2** Notification Bell & Dropdown UI | `notificationsApi.ts`, `notificationStore.ts`, `NotificationBell.tsx` | Navbar notification bell showing unread badge count, auto-polling every 30s, and interactive drop-down list. | `git add . && git commit -m "feat(notifications-ui): create navbar notification bell with polling unread badge"` |
 
-##### 🏁 Phase 5 Completion Checklist (Docs & Remote Push)
+##### 🏁 Phase 5 Completion Checklist (Quality Gate, Docs & Remote Push)
+- [ ] **Iterative Bug Sweep & Resolution Quality Gate**:
+  - Audit forum thread pagination, nested reply tree building, expert verification authorization barriers, and notification polling intervals.
+  - Check for recursive loop issues in forum replies, unhandled 403 Forbidden scenarios for non-experts, or notification read-status sync desynchronization.
+  - Resolve all bugs; if a nested thread querying or polling mechanism degrades performance, replace/refactor with an optimized approach.
+  - **Re-test iteratively again and again** until forum discussions, expert verification stamps, and real-time navbar notification updates work reliably with zero errors.
 - [ ] **Update `PROGRESS_REPORT.md`**: Record forum implementation, expert authorization flow, notification polling, bugs & fixes.
 - [ ] **Update `README.md`**: Document community forum routes, expert role assignment, verification APIs, and notifications.
-- [ ] **Commit Documentation**:
+- [ ] **Commit Documentation & Verified Code**:
   ```bash
-  git add PROGRESS_REPORT.md README.md
-  git commit -m "docs: update progress report and readme for Phase 5 completion"
+  git add .
+  git commit -m "docs: complete Phase 5 bug audit, progress report, and readme"
   ```
 - [ ] **Push to Remote (`https://github.com/Khare69/WildBugs2.0.git`)**:
   ```bash
@@ -840,13 +871,18 @@ gantt
 | **6.3.2** Docker Containerization | `Dockerfile`, `docker-compose.yml`, `.dockerignore` | Multi-stage backend Dockerfile (build stage + lean runtime) and docker-compose with PostgreSQL + PostGIS and Redis. | `git add . && git commit -m "chore(docker): create multi-stage backend dockerfile and docker-compose orchestration"` |
 | **6.3.3** Health Probe & Deployment Manifests | `src/server.ts`, `vercel.json` | Detailed `/api/health` probe verifying database and redis connectivity, plus Vercel SPA rewrite configuration. | `git add . && git commit -m "chore(deploy): add health check probe for db/redis and vercel spa rewrite config"` |
 
-##### 🏁 Phase 6 Completion Checklist (Docs & Final Remote Push)
+##### 🏁 Phase 6 Completion Checklist (Quality Gate, Docs & Final Remote Push)
+- [ ] **Iterative Bug Sweep & Resolution Quality Gate**:
+  - Audit offline IndexedDB sync under simulated airplane mode, Redis cache invalidation on writes, rate limiter 429 error responses, Docker multi-container networking, and `/api/health` probes.
+  - Check for service worker caching conflicts, stale data leaks, Redis memory thresholds, and Docker container build failures.
+  - Resolve all bugs; if any production deployment script, cache strategy, or offline hook is unstable, replace/refactor with an enterprise-grade solution.
+  - **Re-test iteratively again and again** until automated unit/integration tests pass with 100% green status, Docker containers boot cleanly, and zero bugs remain.
 - [ ] **Update `PROGRESS_REPORT.md`**: Finalize overall implementation log, test coverage results, production readiness status.
 - [ ] **Update `README.md`**: Complete full documentation (architecture diagram, deployment guides, Docker setup, production URLs).
-- [ ] **Commit Documentation**:
+- [ ] **Commit Documentation & Verified Code**:
   ```bash
-  git add PROGRESS_REPORT.md README.md
-  git commit -m "docs: finalize progress report and complete readme for Phase 6 production ship"
+  git add .
+  git commit -m "docs: complete Phase 6 final bug audit, progress report, and production readme"
   ```
 - [ ] **Push to Remote (`https://github.com/Khare69/WildBugs2.0.git`)**:
   ```bash
@@ -896,6 +932,7 @@ Follow these rules every time you prompt Flash:
 | **Give the file path in the prompt** | Say "Create `src/services/authService.ts`" so Flash names exports consistently. |
 | **Test after every task** | Run the server / load the page after each prompt. Fix before moving on. Bugs compound. |
 | **Commit after each sub-task** | Run `git add . && git commit -m "..."` immediately after the test passes. Never start the next prompt on dirty git state. |
+| **Iterative Bug Sweep & Re-Test Gate** | At the end of every phase, audit all logs, endpoints, and UI views. Fix every bug or replace fragile methods with superior approaches. Test repeatedly until zero defects remain. |
 | **Log in PROGRESS_REPORT.md** | Update `PROGRESS_REPORT.md` after each sub-phase and phase with changes made, bugs discovered, errors resolved, and methods replaced. |
 | **Update README.md each phase** | Refresh project README documentation with newly working features and instructions after completing each phase. |
 | **Push to remote each phase** | Execute `git push origin main` targeting `https://github.com/Khare69/WildBugs2.0.git` after each full phase completion. |
@@ -1165,18 +1202,21 @@ Use CSS modules for component styles. Make it mobile-first responsive."
 
 ---
 
-###### Task 1.5.4 · Phase 1 Documentation & Remote Push
+###### Task 1.5.4 · Phase 1 Audit, Error Resolution, Documentation & Remote Push
 ```
 Prompt to Flash:
-"We have completed Phase 1 (Foundation).
-1. Update PROGRESS_REPORT.md: Record all changes across Sub-Phases 1.1 - 1.5,
-   bugs caught & resolved, methods replaced, and current skeleton health.
-2. Update README.md: Document the current state of WildBugs (architecture,
-   setup steps, environment variables, auth endpoints, species catalog).
-Ensure both documents are structured, accurate, and clean."
+"We are completing Phase 1 (Foundation).
+1. Comprehensive Bug & Error Sweep:
+   - Audit all backend endpoints (/api/health, /api/auth, /api/species) and frontend views (home, auth, species, layout).
+   - Check server logs, database queries, and browser console for runtime errors, CORS issues, or unhandled promise rejections.
+   - Resolve every discovered bug immediately. If any approach (e.g. auth middleware, state store) is brittle or defective, replace or refactor it with a superior approach.
+   - Re-test iteratively again and again until all services, queries, and UI components pass cleanly with zero errors.
+2. Update PROGRESS_REPORT.md: Record all changes across Sub-Phases 1.1 - 1.5, bugs discovered, errors resolved, methods replaced, and skeleton test results.
+3. Update README.md: Document the current state of WildBugs (architecture, setup steps, environment variables, auth endpoints, species catalog).
+Ensure all files are structured, accurate, and completely verified."
 ```
-- **✅ Test**: Verify `PROGRESS_REPORT.md` and `README.md` are completely updated.
-- **💾 Git Commit**: `git add PROGRESS_REPORT.md README.md && git commit -m "docs: record Phase 1 progress report and update readme"`
+- **✅ Test**: Iterative test run passes with zero errors; `PROGRESS_REPORT.md` and `README.md` reflect verified Phase 1.
+- **💾 Git Commit**: `git add . && git commit -m "docs: complete Phase 1 bug audit, progress report, and readme"`
 - **🚀 Remote Push**: `git push origin main`
 
 ---
@@ -1305,18 +1345,21 @@ Prompt to Flash:
 
 ---
 
-###### Task 2.4.2 · Phase 2 Documentation & Remote Push
+###### Task 2.4.2 · Phase 2 Audit, Error Resolution, Documentation & Remote Push
 ```
 Prompt to Flash:
-"We have completed Phase 2 (Core Upload Loop).
-1. Update PROGRESS_REPORT.md: Record all changes across Sub-Phases 2.1 - 2.4,
-   camera handling, Cloudinary storage, BullMQ vision pipeline, bugs caught & resolved.
-2. Update README.md: Document the media upload workflow, Cloudinary configuration,
-   Google Cloud Vision credentials, and sighting endpoints.
+"We are completing Phase 2 (Core Upload Loop).
+1. Comprehensive Bug & Error Sweep:
+   - Audit the camera capture hook, client canvas compression, Cloudinary upload pipeline, BullMQ Redis worker, and Cloud Vision AI identification.
+   - Test edge cases: large image uploads, slow network connections, GPS permission denied or missing coordinates, and malformed Cloud Vision responses.
+   - Resolve all bugs immediately. If any approach (e.g. image stream handling, queue retry logic) is prone to failures, refactor or replace it with a superior approach.
+   - Re-test iteratively again and again until upload, background processing, and sighting detail rendering execute cleanly with zero errors.
+2. Update PROGRESS_REPORT.md: Record all changes across Sub-Phases 2.1 - 2.4, camera handling, Cloudinary storage, BullMQ vision pipeline, bugs discovered, errors resolved, and methods replaced.
+3. Update README.md: Document the media upload workflow, Cloudinary configuration, Google Cloud Vision credentials, and sighting endpoints.
 Ensure both files are formatted and up to date."
 ```
-- **✅ Test**: Verify `PROGRESS_REPORT.md` and `README.md` reflect Phase 2.
-- **💾 Git Commit**: `git add PROGRESS_REPORT.md README.md && git commit -m "docs: record Phase 2 progress report and update readme"`
+- **✅ Test**: Iterative test run passes with zero errors; `PROGRESS_REPORT.md` and `README.md` reflect verified Phase 2.
+- **💾 Git Commit**: `git add . && git commit -m "docs: complete Phase 2 bug audit, progress report, and readme"`
 - **🚀 Remote Push**: `git push origin main`
 
 ---
@@ -1389,18 +1432,21 @@ leaflet.markercluster, leaflet-heat, and their @types packages.
 
 ---
 
-###### Task 3.2.2 · Phase 3 Documentation & Remote Push
+###### Task 3.2.2 · Phase 3 Audit, Error Resolution, Documentation & Remote Push
 ```
 Prompt to Flash:
-"We have completed Phase 3 (Biodiversity Map).
-1. Update PROGRESS_REPORT.md: Record all changes across Sub-Phases 3.1 - 3.3,
-   PostGIS spatial queries, clustering performance, bugs discovered and resolved.
-2. Update README.md: Document the map interface, spatial API query options,
-   and PostGIS setup requirements.
+"We are completing Phase 3 (Biodiversity Map).
+1. Comprehensive Bug & Error Sweep:
+   - Audit PostGIS spatial queries, bounding box envelopes, GeoJSON responses, Leaflet map layer lifecycle, marker clustering, and heatmap rendering.
+   - Test edge cases: panning across the antimeridian, zooming in/out rapidly, empty sighting datasets, and species/date filter combinations.
+   - Resolve all bugs immediately. If any map plugin or querying strategy produces lag, memory leaks, or render glitches, refactor or replace it with a superior approach.
+   - Re-test iteratively again and again until map markers, popups, clustering, and heatmap toggles render smoothly with zero errors.
+2. Update PROGRESS_REPORT.md: Record all changes across Sub-Phases 3.1 - 3.3, PostGIS spatial queries, clustering performance, bugs discovered, errors resolved, and methods replaced.
+3. Update README.md: Document the map interface, spatial API query options, and PostGIS setup requirements.
 Ensure both files are formatted and up to date."
 ```
-- **✅ Test**: Verify `PROGRESS_REPORT.md` and `README.md` reflect Phase 3.
-- **💾 Git Commit**: `git add PROGRESS_REPORT.md README.md && git commit -m "docs: record Phase 3 progress report and update readme"`
+- **✅ Test**: Iterative test run passes with zero errors; `PROGRESS_REPORT.md` and `README.md` reflect verified Phase 3.
+- **💾 Git Commit**: `git add . && git commit -m "docs: complete Phase 3 bug audit, progress report, and readme"`
 - **🚀 Remote Push**: `git push origin main`
 
 ---
@@ -1540,18 +1586,21 @@ Frontend:
 
 ---
 
-###### Task 4.4.2 · Phase 4 Documentation & Remote Push
+###### Task 4.4.2 · Phase 4 Audit, Error Resolution, Documentation & Remote Push
 ```
 Prompt to Flash:
-"We have completed Phase 4 (Engagement & Gamification).
-1. Update PROGRESS_REPORT.md: Record all changes across Sub-Phases 4.1 - 4.4,
-   profile pages, streaks calculation, badge rule engine, seasonal challenges, bugs discovered and resolved.
-2. Update README.md: Document user profile features, field journal, streak rules,
-   badge triggers, and seasonal challenges endpoints.
+"We are completing Phase 4 (Engagement & Gamification).
+1. Comprehensive Bug & Error Sweep:
+   - Audit user profile calculations, field journal pagination, streak increment/reset logic across timezones, Redis leaderboard ranking updates, badge award rule evaluation, and seasonal challenge join/progress handlers.
+   - Test edge cases: user uploading multiple sightings on the same day, crossing midnight, duplicate badge awards, and expired challenge submissions.
+   - Resolve all bugs immediately. If any gamification calculation or cache synchronization is buggy, refactor or replace it with a superior approach.
+   - Re-test iteratively again and again until profiles, streaks, leaderboards, badges, and challenges operate flawlessly with zero errors.
+2. Update PROGRESS_REPORT.md: Record all changes across Sub-Phases 4.1 - 4.4, profile pages, streaks calculation, badge rule engine, seasonal challenges, bugs discovered, errors resolved, and methods replaced.
+3. Update README.md: Document user profile features, field journal, streak rules, badge triggers, and seasonal challenges endpoints.
 Ensure both files are formatted and up to date."
 ```
-- **✅ Test**: Verify `PROGRESS_REPORT.md` and `README.md` reflect Phase 4.
-- **💾 Git Commit**: `git add PROGRESS_REPORT.md README.md && git commit -m "docs: record Phase 4 progress report and update readme"`
+- **✅ Test**: Iterative test run passes with zero errors; `PROGRESS_REPORT.md` and `README.md` reflect verified Phase 4.
+- **💾 Git Commit**: `git add . && git commit -m "docs: complete Phase 4 bug audit, progress report, and readme"`
 - **🚀 Remote Push**: `git push origin main`
 
 ---
@@ -1632,18 +1681,21 @@ Frontend:
 
 ---
 
-###### Task 5.2.2 · Phase 5 Documentation & Remote Push
+###### Task 5.2.2 · Phase 5 Audit, Error Resolution, Documentation & Remote Push
 ```
 Prompt to Flash:
-"We have completed Phase 5 (Community).
-1. Update PROGRESS_REPORT.md: Record all changes across Sub-Phases 5.1 - 5.3,
-   forum threads and replies, expert verification workflow, notification engine, bugs discovered and resolved.
-2. Update README.md: Document community forum routes, expert verification criteria,
-   and notification polling / event handling.
+"We are completing Phase 5 (Community).
+1. Comprehensive Bug & Error Sweep:
+   - Audit forum post creation, nested reply trees, upvoting logic, expert verification permission middleware (403 for unauthorized users), and notification polling intervals.
+   - Test edge cases: deeply nested reply chains, simultaneous upvotes, expert reject vs verify workflows, and notification badge clearing on click.
+   - Resolve all bugs immediately. If any community query or notification delivery mechanism causes race conditions or UI lag, refactor or replace it with a superior approach.
+   - Re-test iteratively again and again until forum discussions, expert verification, and real-time notification drops work seamlessly with zero errors.
+2. Update PROGRESS_REPORT.md: Record all changes across Sub-Phases 5.1 - 5.3, forum threads and replies, expert verification workflow, notification engine, bugs discovered, errors resolved, and methods replaced.
+3. Update README.md: Document community forum routes, expert verification criteria, and notification polling / event handling.
 Ensure both files are formatted and up to date."
 ```
-- **✅ Test**: Verify `PROGRESS_REPORT.md` and `README.md` reflect Phase 5.
-- **💾 Git Commit**: `git add PROGRESS_REPORT.md README.md && git commit -m "docs: record Phase 5 progress report and update readme"`
+- **✅ Test**: Iterative test run passes with zero errors; `PROGRESS_REPORT.md` and `README.md` reflect verified Phase 5.
+- **💾 Git Commit**: `git add . && git commit -m "docs: complete Phase 5 bug audit, progress report, and readme"`
 - **🚀 Remote Push**: `git push origin main`
 
 ---
@@ -1740,18 +1792,21 @@ Prompt to Flash:
 
 ---
 
-###### Task 6.3.2 · Phase 6 Documentation & Final Remote Push
+###### Task 6.3.2 · Phase 6 Final Audit, Error Resolution, Documentation & Remote Push
 ```
 Prompt to Flash:
-"We have completed Phase 6 (Polish, Hardening & Deployment).
-1. Update PROGRESS_REPORT.md: Record final wrap-up across Sub-Phases 6.1 - 6.3,
-   PWA caching, offline sync, Redis caching benchmarks, rate limiter testing, Docker containerization, bugs discovered and resolved.
-2. Update README.md: Finalize project documentation with complete architecture diagrams,
-   Docker deployment instructions, environment variable matrix, API documentation, and production runbook.
-Ensure both files are completely polished."
+"We are completing Phase 6 (Polish, Hardening & Deployment).
+1. Comprehensive Final Bug & Error Sweep:
+   - Audit offline queue transitions under simulated network cutoffs, Redis cache invalidation on mutations, rate limiter 429 response handling, Docker build stages, and automated test runners.
+   - Run all unit and integration test suites (`npm test`).
+   - Resolve every discovered bug or test failure immediately. If any caching layer, PWA workbox setup, or container network approach is flaky or slow, refactor or replace it with an enterprise-grade solution.
+   - Re-test iteratively again and again until all automated tests pass 100% green, Docker containers spin up without warnings, and zero defects remain.
+2. Update PROGRESS_REPORT.md: Record final wrap-up across Sub-Phases 6.1 - 6.3, PWA caching, offline sync, Redis caching benchmarks, rate limiter testing, Docker containerization, bugs discovered, errors resolved, and methods replaced.
+3. Update README.md: Finalize project documentation with complete architecture diagrams, Docker deployment instructions, environment variable matrix, API documentation, and production runbook.
+Ensure both files are completely polished and verified."
 ```
-- **✅ Test**: Verify `PROGRESS_REPORT.md` and `README.md` are comprehensive and up to date.
-- **💾 Git Commit**: `git add PROGRESS_REPORT.md README.md && git commit -m "docs: finalize progress report and comprehensive project documentation"`
+- **✅ Test**: All automated tests pass with 100% green; `docker-compose up` runs without errors; `PROGRESS_REPORT.md` and `README.md` are comprehensive and up to date.
+- **💾 Git Commit**: `git add . && git commit -m "docs: complete Phase 6 final bug audit, progress report, and production readme"`
 - **🚀 Remote Push**: `git push origin main`
 
 ---
