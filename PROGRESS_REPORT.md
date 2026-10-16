@@ -24,20 +24,28 @@
 ### 🏗️ Phase 1 — Foundation
 
 #### Sub-Phase 1.1: Project Scaffolding & Base Tooling
-- **Status**: ⏳ Ready to execute
+- **Status**: ✅ Completed
 - **Tasks**:
-  - Task 1.1.1: Backend project scaffold (Express + TypeScript + health probe)
-  - Task 1.1.2: Frontend project scaffold (Vite + React + TS + router + query client)
+  - Task 1.1.1: Backend project scaffold (`wildbugs-backend/`)
+  - Task 1.1.2: Frontend project scaffold (`wildbugs-frontend/`)
 - **🛠️ Changes Performed**:
-  - *Pending execution*
+  - Initialized Express + TypeScript backend scaffold in `wildbugs-backend/` with `package.json`, `tsconfig.json`, `src/app.ts`, `src/server.ts`, `.env.example`, `.env`, and `.gitignore`.
+  - Configured CORS, JSON parsing, and `/api/health` probe endpoint.
+  - Initialized Vite + React + TypeScript frontend scaffold in `wildbugs-frontend/` with React Router 6, TanStack Query, Axios, and Zustand.
+  - Implemented `src/api/client.ts` Axios instance configured to communicate with `VITE_API_URL`.
+  - Implemented `src/App.tsx` with routing for `/` (Home), `/species` (Species Catalog), `/login` (Sign In), and `*` (404 Not Found), integrating live query testing for backend `/api/health`.
+  - Implemented modern biodiversity dark theme design tokens and glassmorphism styling in `src/index.css`.
 - **🐛 Bugs Discovered**:
-  - *None yet*
+  - Frontend TypeScript build failed with `error TS1484: 'AxiosInstance' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled`.
 - **🔧 Errors Resolved**:
-  - *None yet*
+  - Converted `import axios, { AxiosInstance } from 'axios'` in `wildbugs-frontend/src/api/client.ts` to type-only import `import axios, { type AxiosInstance } from 'axios'`, allowing clean TypeScript compilation under Vite's strict `verbatimModuleSyntax`.
 - **🔄 Methods Replaced / Refactored**:
-  - *None yet*
+  - Used explicit `type` imports in `client.ts` to strictly comply with TypeScript 5.7+ `verbatimModuleSyntax`.
 - **📝 Verification Actions & Test Results**:
-  - *Target: GET `/api/health` returns `{"status":"ok"}` and frontend renders skeleton router.*
+  - Backend Build: `npm run build` in `wildbugs-backend` passed cleanly (exit code 0).
+  - Health Probe Test: Launched backend server on port 3001; verified `GET /api/health` returned `{"status":"ok", "service":"wildbugs-api"}`.
+  - Frontend Build: `npm run build` in `wildbugs-frontend` compiled client bundle in 367ms without warnings or errors.
+  - Git Commits: `29c8439` (Task 1.1.1) and `b7ea860` (Task 1.1.2).
 
 ---
 
