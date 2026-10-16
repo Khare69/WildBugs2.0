@@ -3,6 +3,7 @@ import cors from 'cors';
 import { NotFoundError } from './utils/errors';
 import errorHandler from './middleware/errorHandler';
 import authRoutes from './routes/authRoutes';
+import speciesRoutes from './routes/speciesRoutes';
 
 const app: Express = express();
 
@@ -21,6 +22,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
 
 // Mount Feature API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/species', speciesRoutes);
 
 // 404 Catch-All Handler for Undefined Routes
 app.all('*', (req: Request, _res: Response, next: NextFunction) => {
