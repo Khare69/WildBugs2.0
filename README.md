@@ -32,7 +32,7 @@
 
 | Phase | Milestone | Status | Key Deliverables |
 |:---:|:---|:---:|:---|
-| **Phase 1** | **Foundation** | ⏳ In Progress | Scaffolding, Prisma schema, species seed, JWT auth, species catalog UI |
+| **Phase 1** | **Foundation** | ✅ Completed | Scaffolding, Prisma v6 schema, 30-species seed, JWT auth, species catalog & layout shell |
 | **Phase 2** | **Core Upload Loop** | ⏳ Upcoming | Media capture, Cloudinary pipeline, async Cloud Vision AI worker, discovery view |
 | **Phase 3** | **Biodiversity Map** | ⏳ Upcoming | PostGIS spatial queries, interactive Leaflet map, clustering, density heatmap |
 | **Phase 4** | **Engagement & Gamification** | ⏳ Upcoming | User profiles, field journal, streak engine, automated badges, seasonal challenges |
@@ -41,26 +41,78 @@
 
 ---
 
+## 🏗️ Phase 1 Features & Architecture
+
+### Backend API (`wildbugs-backend/`)
+- **Express + TypeScript** server with CORS, JSON body-parser with malformed JSON syntax error trapping, and centralized `AppError` handling.
+- **Prisma v6 LTS ORM** with PostgreSQL schema supporting `User`, `Species`, `Sighting`, `Identification`, `Badge`, and `UserBadge`.
+- **Database Seeder**: 30 realistic insect species across 6 taxonomic orders with complete scientific names, descriptions, habitats, diets, and conservation statuses.
+- **Authentication**: Bcryptjs password hashing (10 salt rounds), JWT signing with configurable expiration, and `authenticate` bearer middleware.
+- **Species Catalog API**: Paginated listing with search across common/scientific names and habitat, family filtering, conservation status filtering, and individual profile lookups.
+- **Strict Validation**: All incoming requests validated at the controller boundary using **Zod**.
+
+#### API Reference (Phase 1 Endpoints)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET` | `/api/health` | Service health probe | No |
+| `POST` | `/api/auth/register` | Register new user account | No |
+| `POST` | `/api/auth/login` | Authenticate with credentials and receive JWT | No |
+| `GET` | `/api/auth/me` | Retrieve current authenticated user profile | Yes (Bearer) |
+| `GET` | `/api/species` | Paginated catalog (`?search=&family=&conservationStatus=&page=&limit=`) | No |
+| `GET` | `/api/species/families` | Distinct taxonomic families with species counts | No |
+| `GET` | `/api/species/:id` | Detailed species biological profile | No |
+
+---
+
+### Frontend Application (`wildbugs-frontend/`)
+- **Vite + React 18 + TypeScript** with fast HMR and optimized production bundling.
+- **Security-First Auth Store**: Global session managed in-memory via **Zustand** (protecting tokens from XSS token theft in `localStorage`).
+- **Axios Client**: Automatic Bearer token injection and global 401 unauthenticated response handling.
+- **TanStack Query (React Query)**: Asynchronous server state caching, pagination handling, and retry logic.
+- **Responsive Layout Shell**: Sticky glassmorphic `Navbar`, mobile `BottomNav` bar (for screens <= 768px), and modern footer.
+- **Species Catalog UI**: Searchable grid with family pills, conservation status badges, loading skeletons, and profile views.
+- **Dark Forest Design System**: Modern aesthetic with glowing emerald accents, glassmorphic card panels, and responsive grid layouts.
+
+---
+
 ## 🚀 Getting Started
 
-### Prerequisites
-- Node.js (v18+ or v20+ recommended)
-- PostgreSQL (with PostGIS extension enabled)
-- Redis server
-- Cloudinary Account & Google Cloud Vision API credentials
+### 1. Prerequisites
+- **Node.js**: v18.0.0+ (v20+ LTS recommended)
+- **PostgreSQL**: v15+ (with PostGIS extension enabled)
 
-### Initial Setup
+### 2. Backend Setup
 ```bash
-# Clone the repository
-git clone https://github.com/Khare69/WildBugs2.0.git
-cd WildBugs2.0
+cd wildbugs-backend
 
-# Install dependencies (once scaffolding is generated)
+# Install dependencies
 npm install
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env to set your PostgreSQL connection string and JWT secret
+
+# Generate Prisma Client & Run Seeder
+npx prisma generate
+npx prisma db push
+npm run prisma:seed
+
+# Start development server
+npm run dev
+# The API will be live at http://localhost:3001
 ```
 
-### Environment Variables (.env)
-A template `.env.example` will be maintained as each module is developed. See [`architecture_plan.md`](./architecture_plan.md) for full configuration specs.
+### 3. Frontend Setup
+```bash
+cd wildbugs-frontend
+
+# Install dependencies
+npm install
+
+# Start Vite development server
+npm run dev
+# The UI will be live at http://localhost:5173
+```
 
 ---
 
