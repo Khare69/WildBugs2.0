@@ -43,6 +43,9 @@ const envSchema = z.object({
     .string()
     .optional()
     .default(''),
+  REDIS_URL: z
+    .string()
+    .default('redis://localhost:6379'),
 });
 
 const parseEnv = () => {
