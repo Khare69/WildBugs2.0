@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AccountPage from './pages/AccountPage';
 import UploadPage from './pages/UploadPage';
+import SightingDetailPage from './pages/SightingDetailPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -27,6 +28,7 @@ export const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
+          <Route path="/sightings/:id" element={<SightingDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route
