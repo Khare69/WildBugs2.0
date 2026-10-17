@@ -4,6 +4,7 @@ import { NotFoundError } from './utils/errors';
 import errorHandler from './middleware/errorHandler';
 import authRoutes from './routes/authRoutes';
 import speciesRoutes from './routes/speciesRoutes';
+import sightingRoutes from './routes/sightingRoutes';
 
 import env from './config/env';
 
@@ -35,6 +36,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
 // Mount Feature API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/species', speciesRoutes);
+app.use('/api/sightings', sightingRoutes);
 
 // 404 Catch-All Handler for Undefined Routes
 app.all('*', (req: Request, _res: Response, next: NextFunction) => {
