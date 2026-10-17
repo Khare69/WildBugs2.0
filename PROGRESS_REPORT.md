@@ -11,7 +11,7 @@
 | Phase | Description | Sub-Phases | Status | Bug Audit Gate | Remote Synced | Last Updated |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|
 | **Phase 1** | Foundation (Scaffolding, DB, Auth, Species, Shell) | 1.1 – 1.5 | ✅ Completed | ✅ Passed (0 Bugs) | Yes | 2026-10-16 |
-| **Phase 2** | Core Upload Loop (Capture, Storage, AI Vision, Detail) | 2.1 – 2.4 | ⏳ Pending | ⏳ Pending | No | — |
+| **Phase 2** | Core Upload Loop (Capture, Storage, AI Vision, Detail) | 2.1 – 2.4 | ✅ Completed | ✅ Passed (0 Bugs) | Yes | 2026-10-17 |
 | **Phase 3** | Biodiversity Map (PostGIS, Leaflet, Clustering, Heatmap) | 3.1 – 3.3 | ⏳ Pending | ⏳ Pending | No | — |
 | **Phase 4** | Engagement & Gamification (Journal, Streaks, Badges, Challenges) | 4.1 – 4.4 | ⏳ Pending | ⏳ Pending | No | — |
 | **Phase 5** | Community (Discussion Forum, Verification, Notifications) | 5.1 – 5.3 | ⏳ Pending | ⏳ Pending | No | — |
@@ -328,19 +328,64 @@
   - `2985160`: `feat(ai): integrate google cloud vision worker for automatic insect classification`
 
 #### Sub-Phase 2.4: Upload Experience & Discovery Detail View
-- **Status**: ⏳ Pending
+- **Status**: ✅ Completed
 - **🛠️ Changes Performed**:
+  - **Sighting API Client & Type Definitions (`src/api/sightingsApi.ts`, `src/types/sighting.ts`)**:
+    - Created typed API wrapper for `createSighting` (with multipart `FormData` and upload progress events), `getSightingById`, `getMySightings`, and `getRecentSightings`.
+    - Defined TypeScript interfaces for `Sighting`, `SightingStatus`, `SightingIdentification`, and API responses.
+  - **Geolocation Detection Hook (`src/hooks/useGeolocation.ts`)**:
+    - Created `useGeolocation` hook with permissions query state (`granted`, `prompt`, `denied`).
+    - Handled geolocation error codes (permission denied, position unavailable, timeout) and high-accuracy acquisition.
+    - Provided manual coordinate overrides and precision formatting.
+  - **Upload Wizard State Management (`src/store/uploadStore.ts`)**:
+    - Built Zustand store tracking 5 distinct stages (`capture`, `preview`, `location`, `submitting`, `success`).
+    - Stored raw and compressed file blobs, preview URLs, dimensions, and bandwidth optimization statistics.
+    - Managed upload progress percentage (0–100%) and error state.
+  - **Camera Capture & File Dropzone (`src/components/sightings/PhotoCapture.tsx`)**:
+    - Integrated mobile camera viewfinder stream via `useCamera` hook with front/rear camera flipping.
+    - Added drag-and-drop file upload target with raw size validation and automatic client-side canvas compression.
+  - **Multi-Step Upload Form (`src/components/sightings/UploadForm.tsx`)**:
+    - Step 1 (Capture): Live camera capture or local file dropzone.
+    - Step 2 (Preview): Image inspection with live bandwidth savings badge and dimensions readout.
+    - Step 3 (Location): Automated GPS coordinate detection, manual coordinate fields with range validation (-90/90, -180/180), optional species dropdown, and observation timestamp.
+    - Step 4 (Submitting): Animated progress bar with step status feedback.
+    - Step 5 (Success): Result card displaying coordinates, thumbnail preview, status chip, and direct link to observation.
+  - **Upload View Layout (`src/pages/UploadPage.tsx`)**:
+    - Built responsive layout with field photography advice (lighting, key morphological features) and ethical guidelines.
+  - **Sighting Detail & AI Result View (`src/components/sightings/IdentificationResult.tsx`, `src/pages/SightingDetailPage.tsx`)**:
+    - Implemented `IdentificationResult` component with dynamic AI confidence meter, source pill badges, species spotlight card, and correction trigger modal.
+    - Created `SightingDetailPage` with automated 3-second polling on `PENDING` sightings until AI worker completes classification.
+    - Added high-resolution image viewer, observer attribution card, geospatial coordinate copy button, and OpenStreetMap external deep-link.
+    - Appended complete ecological dossier (habitat, diet, lifecycle, conservation status) when species is classified.
+  - **Navigation Integration (`App.tsx`, `Navbar.tsx`, `BottomNav.tsx`)**:
+    - Added protected `/upload` route and public `/sightings/:id` route in `App.tsx`.
+    - Added "📸 Record Sighting" links in desktop navbar, mobile drawer, and mobile bottom navigation bar.
+  - **Unit Test Suites (`src/store/uploadStore.test.ts`, `src/components/sightings/IdentificationResult.test.ts`)**:
+    - Added 9 unit tests verifying upload store step transitions, coordinate setting, progress handling, confidence tier mapping, and OpenStreetMap link generation.
 - **🐛 Bugs Discovered**:
+  - `uploadStore.test.ts` import resolution failed under Node's native test runner `--experimental-strip-types` when type imports lacked explicit `type` keyword.
+  - Strict TypeScript compiler (`tsc -b`) flagged non-type imports in `sightingsApi.ts`, `sighting.ts`, and an unused `formatFileSize` import.
+  - React linter (`oxlint`) detected synchronous `setState` in effect hooks for geolocation.
 - **🔧 Errors Resolved**:
+  - Converted all type references to `import type` across `sightingsApi.ts`, `sighting.ts`, and `uploadStore.ts`.
+  - Replaced synchronous `useEffect` state syncing in `UploadForm.tsx` with user-driven event handler `handleDetectLocation`, eliminating cascading renders.
 - **🔄 Methods Replaced / Refactored**:
+  - Replaced manual page refresh with automated TanStack Query polling interval on pending sightings, creating a seamless real-time AI classification experience.
 - **📝 Verification Actions & Test Results**:
+  - **Backend Test Suite**: 30/30 tests passing across 9 test suites (`0` failures) in 27.6s.
+  - **Frontend Test Suite**: 19/19 tests passing across 5 test suites (`0` failures) in 276ms.
+  - **Frontend Linter**: `oxlint` reported 0 warnings and 0 errors across 38 files.
+  - **Frontend Build**: `tsc -b && vite build` compiled 158 modules in 393ms with 0 errors.
+- **💾 Git Commits**:
+  - `f8ec8c9`: `feat(upload-ui): build multi-step photo upload flow with automatic gps detection`
+  - `8917611`: `feat(sighting-detail): display sighting details with ai confidence score and status badge`
 
 #### 🏁 Phase 2 Quality Gate & Wrap-Up Audit
-- **Phase Completion Status**: ⏳ Pending
+- **Phase Completion Status**: ✅ Completed
 - **Iterative Bug Sweep & Resolution Audit**:
-  - *Discovered Defects & Runtime Errors*: None yet
-  - *Suboptimal Methods Replaced / Refactored*: None yet
-  - *Repeated Test Iteration Results*: Pending verification (target: zero upload or queue processing errors)
+  - *Discovered Defects & Runtime Errors*: 0 remaining; all type errors, linter warnings, and runner imports resolved.
+  - *Suboptimal Methods Replaced / Refactored*: Handled Redis disconnection gracefully during unit testing, replaced synchronous effect sync with direct event callbacks, and added polling on pending AI classifications.
+  - *Repeated Test Iteration Results*: All 49 automated unit and integration tests passing cleanly (30 backend, 19 frontend). Zero runtime errors.
 - **Git Commit**: `git commit -m "docs: complete Phase 2 bug audit, progress report, and readme"`
 - **Remote Push**: `git push origin main`
 

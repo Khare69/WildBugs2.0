@@ -33,11 +33,50 @@
 | Phase | Milestone | Status | Key Deliverables |
 |:---:|:---|:---:|:---|
 | **Phase 1** | **Foundation** | ✅ Completed | Scaffolding, Prisma v6 schema, 30-species seed, JWT auth, species catalog & layout shell |
-| **Phase 2** | **Core Upload Loop** | ⏳ Upcoming | Media capture, Cloudinary pipeline, async Cloud Vision AI worker, discovery view |
+| **Phase 2** | **Core Upload Loop** | ✅ Completed | Media capture, Cloudinary pipeline, async Cloud Vision AI worker, discovery view |
 | **Phase 3** | **Biodiversity Map** | ⏳ Upcoming | PostGIS spatial queries, interactive Leaflet map, clustering, density heatmap |
 | **Phase 4** | **Engagement & Gamification** | ⏳ Upcoming | User profiles, field journal, streak engine, automated badges, seasonal challenges |
 | **Phase 5** | **Community & Moderation** | ⏳ Upcoming | Forum threads, expert verification system, notification bell with polling |
 | **Phase 6** | **Polish, Hardening & Deployment** | ⏳ Upcoming | PWA offline sync, Redis caching, rate limiting, Docker containerization, health probes |
+
+---
+
+## 📸 Phase 2 Features & Architecture
+
+### Backend Media Ingestion & AI Pipeline (`wildbugs-backend/`)
+- **Multer Memory Storage**: In-memory streaming buffer handling photo uploads up to 10MB with strict MIME filtering (`image/jpeg`, `image/png`, `image/webp`).
+- **Cloudinary CDN Integration**: Direct buffer streaming to Cloudinary with automatic 300x300 thumbnail generation and fallback mocks for local test environments.
+- **BullMQ + Redis Background Processing**:
+  - Configured resilient Redis connection (`maxRetriesPerRequest: null`) with exponential reconnection backoff.
+  - Dedicated `identification` job queue orchestrating background AI classification upon sighting creation.
+- **Google Cloud Vision AI Worker**:
+  - Image annotation pipeline extracting morphological labels and confidence metrics.
+  - Weighted species matcher ranking catalog matches against common names, scientific names, and taxonomic families.
+  - Automatic status updates (`PENDING` -> `IDENTIFIED` or `UNIDENTIFIED`) and audit trail creation in `identifications` table.
+- **Automated Test Coverage**: 30 backend unit and integration tests covering image uploading, queue configuration, and AI classification logic (`npm test`).
+
+#### API Reference (Sighting Endpoints)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `POST` | `/api/sightings` | Upload photo & GPS coordinates (`photo`, `latitude`, `longitude`, `speciesId`, `observedAt`) | Yes (Bearer) |
+| `GET` | `/api/sightings/:id` | Detailed sighting with observer, species, and identification history | No |
+| `GET` | `/api/sightings/me` | Paginated sighting history for authenticated observer (`?page=&limit=`) | Yes (Bearer) |
+| `GET` | `/api/sightings` | Recent public observation sightings feed (`?limit=`) | No |
+
+---
+
+### Frontend Observation & Discovery Experience (`wildbugs-frontend/`)
+- **Client-Side Image Preprocessing**: HTML5 Canvas utility resizing high-resolution phone camera photos (up to 20MB) down to optimized JPEGs (300–600KB, max 2048px), saving over 80% bandwidth before transmission.
+- **Mobile Camera Capture (`useCamera`)**: Full camera stream viewfinder with front/rear camera switching, video frame capture, and fallback to local file browser.
+- **Geolocation Integration (`useGeolocation`)**: Automatic device GPS location detection with precision readouts (±meters), coordinate bounds checking (-90/90, -180/180), and sample coordinate presets.
+- **Upload Wizard (`/upload`)**: 5-step intuitive flow (Capture → Preview & Compression Stats → Location & Observation Details → Progress Feedback → Success & AI Result Link).
+- **Observation Detail View (`/sightings/:id`)**:
+  - Dynamic 3-second polling on `PENDING` observations until Google Cloud Vision classification finishes.
+  - Visual AI confidence meter (High / Moderate / Review Needed).
+  - High-res photo viewer with observer attribution and OpenStreetMap link.
+  - Complete ecological profile (habitat, diet, lifecycle) populated when species is classified.
+  - "Suggest Species Correction" modal for community and expert input.
+- **Automated Test Coverage**: 19 frontend unit tests verifying image compression, upload store state, and identification calculations (`npm test`).
 
 ---
 
@@ -51,7 +90,6 @@
 - **Authentication**: Bcryptjs password hashing (10 salt rounds), JWT signing with configurable expiration, and `authenticate` bearer middleware with whitespace-safe token extraction.
 - **Species Catalog API**: Paginated listing with search across common/scientific names and habitat, trimmed family filtering, conservation status filtering, and individual profile lookups.
 - **Strict Validation**: All incoming requests validated at the controller boundary using **Zod** with whitespace sanitization.
-- **Automated Test Suite**: 17 unit and integration tests powered by Node 22 native `node:test` runner and `ts-node` (`npm test`).
 
 #### API Reference (Phase 1 Endpoints)
 | Method | Endpoint | Description | Auth Required |
