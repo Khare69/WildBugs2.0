@@ -44,7 +44,7 @@ export const validateImageFile = (
 ): { valid: boolean; error?: string } => {
   const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 
-  if (!file.type && !file.name.match(/\.(jpe?g|png|webp|heic|heif)$/i)) {
+  if (!file.type && (!file.name || !file.name.match(/\.(jpe?g|png|webp|heic|heif)$/i))) {
     return {
       valid: false,
       error: 'Unrecognized file type. Please upload a valid JPG, PNG, or WebP photo.',
@@ -73,7 +73,7 @@ export const validateImageFile = (
  * Formats byte counts into human-readable strings (e.g., "4.2 MB", "340 KB").
  */
 export const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 B';
+  if (bytes <= 0 || isNaN(bytes)) return '0 B';
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -105,6 +105,11 @@ const loadImage = (source: File | Blob): Promise<HTMLImageElement> => {
 /**
  * Compresses and resizes a client-side image file before network transmission.
  *
+ * Supports both options object:
+ *   compressImage(file, { maxDimension: 2048, quality: 0.82 })
+ * and positional parameters:
+ *   compressImage(file, 2048, 0.8)
+ *
  * Algorithm:
  * 1. Decodes photo into memory via HTMLImageElement.
  * 2. Calculates proportional downscaling if dimensions exceed `maxDimension` (default 2048px).
@@ -114,8 +119,14 @@ const loadImage = (source: File | Blob): Promise<HTMLImageElement> => {
  */
 export const compressImage = async (
   file: File | Blob,
-  options: CompressionOptions = {}
+  optionsOrMaxWidth?: CompressionOptions | number,
+  optionalQuality?: number
 ): Promise<CompressedImageResult> => {
+  const options: CompressionOptions =
+    typeof optionsOrMaxWidth === 'number'
+      ? { maxDimension: optionsOrMaxWidth, quality: optionalQuality ?? 0.82 }
+      : (optionsOrMaxWidth || {});
+
   const {
     maxDimension = 2048,
     quality = 0.82,

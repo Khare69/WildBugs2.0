@@ -15,6 +15,7 @@ export interface UseCameraOptions {
 
 export interface UseCameraReturn {
   videoRef: React.RefObject<HTMLVideoElement | null>;
+  stream: MediaStream | null;
   isStreaming: boolean;
   isLoading: boolean;
   error: string | null;
@@ -25,6 +26,7 @@ export interface UseCameraReturn {
   stopCamera: () => void;
   switchCamera: () => Promise<boolean>;
   takePhoto: () => Promise<CapturedPhoto | null>;
+  capturePhoto: () => Promise<CapturedPhoto | null>;
   clearPhoto: () => void;
   loadPhotoFromFile: (file: File) => Promise<CapturedPhoto | null>;
 }
@@ -35,6 +37,7 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  const [stream, setStream] = useState<MediaStream | null>(null);
   const [isStreaming, setIsStreaming] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +61,7 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
       videoRef.current.srcObject = null;
     }
 
+    setStream(null);
     setIsStreaming(false);
     setIsLoading(false);
   }, []);
@@ -103,6 +107,7 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
         }
 
         streamRef.current = stream;
+        setStream(stream);
         setFacingMode(targetMode);
 
         if (videoRef.current) {
@@ -112,8 +117,15 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
 
           // Wait until metadata is loaded to ensure dimensions are known
           await new Promise<void>((resolve) => {
-            if (!videoRef.current) return resolve();
-            videoRef.current.onloadedmetadata = () => resolve();
+            const vid = videoRef.current;
+            if (!vid) return resolve();
+            if (vid.readyState >= 1) return resolve();
+
+            const timer = setTimeout(() => resolve(), 2000);
+            vid.onloadedmetadata = () => {
+              clearTimeout(timer);
+              resolve();
+            };
           });
 
           await videoRef.current.play();
@@ -284,6 +296,7 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
 
   return {
     videoRef,
+    stream,
     isStreaming,
     isLoading,
     error,
@@ -294,6 +307,7 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
     stopCamera,
     switchCamera,
     takePhoto,
+    capturePhoto: takePhoto,
     clearPhoto,
     loadPhotoFromFile,
   };
