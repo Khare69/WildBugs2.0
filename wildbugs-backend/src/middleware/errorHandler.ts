@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+import multer from 'multer';
 import { ZodError } from 'zod';
 import { Prisma } from '@prisma/client';
 import { AppError } from '../utils/errors';
@@ -41,7 +42,25 @@ export const errorHandler: ErrorRequestHandler = (
     return;
   }
 
-  // 2. Handle Body Parser JSON Syntax Errors
+  // 2. Handle Multer File Upload Errors
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      res.status(400).json({
+        status: 'fail',
+        message: 'File size exceeds maximum upload limit of 10MB',
+        error: 'Payload Too Large',
+      });
+      return;
+    }
+    res.status(400).json({
+      status: 'fail',
+      message: err.message,
+      error: 'File upload error',
+    });
+    return;
+  }
+
+  // 3. Handle Body Parser JSON Syntax Errors
   if (err instanceof SyntaxError && 'status' in err && (err as any).status === 400 && 'body' in err) {
     res.status(400).json({
       status: 'fail',
