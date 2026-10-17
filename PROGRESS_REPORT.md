@@ -294,12 +294,38 @@
   - `b5c539e`: `feat(sightings): implement sighting creation endpoint with coordinates and image metadata`
 
 #### Sub-Phase 2.3: Asynchronous AI Vision Pipeline
-- **Status**: ⏳ Pending
+- **Status**: ✅ Completed
 - **🛠️ Changes Performed**:
+  - **BullMQ & Redis Queue Setup (`src/database/redis.ts`, `src/jobs/queue.ts`)**:
+    - Configured IORedis client with graceful connection failure handling and reconnection backoff.
+    - Added BullMQ compatibility setting `maxRetriesPerRequest: null`.
+    - Initialized `identificationQueue` using BullMQ with automated exponential retry backoff.
+    - Implemented helper methods `addIdentificationJob(data)` and `closeIdentificationQueue()`.
+    - Added unit test suite `tests/unit/jobs/queue.test.ts` verifying queue configuration.
+  - **Google Cloud Vision Worker & Identification Service (`src/config/vision.ts`, `src/services/identificationService.ts`, `src/jobs/identifyInsect.job.ts`)**:
+    - Created Google Cloud Vision client wrapper with mock fallback when credentials are not configured in dev/test environments.
+    - Implemented `identificationService.annotateImage(imageUrl)` fetching vision label annotations and confidence scores.
+    - Implemented `identificationService.matchLabelsToSpecies(labels)` matching labels against database species common names, scientific names, and taxonomic families.
+    - Implemented `processInsectIdentificationJob(job)` background worker logic updating sighting status to `IDENTIFIED` or `UNIDENTIFIED` and recording `Identification` entries.
+    - Attached background worker startup and graceful shutdown in `src/server.ts`.
+    - Integrated automatic queue dispatch in `sightingService.create()` immediately upon sighting persistence.
+    - Added unit test suite `tests/unit/services/identificationService.test.ts`.
 - **🐛 Bugs Discovered**:
+  - Redis connection refused during test runs when no local Redis server is active, producing unhandled error events.
+  - Identification job required graceful null handling when species matching finds no high-confidence classification.
 - **🔧 Errors Resolved**:
+  - Added warning interceptor on Redis error event (`redisClient.on('error', ...)`) preventing unhandled node process crashes when Redis is offline.
+  - Structured `identifyInsect.job.ts` to log fallback message and leave sighting marked for community identification without throwing unhandled exceptions.
 - **🔄 Methods Replaced / Refactored**:
+  - Implemented offline-resilient label matching simulation to guarantee non-blocking test execution and local developer experience.
 - **📝 Verification Actions & Test Results**:
+  - **Backend Test Suite**: 30/30 tests passing across 9 test suites (`0` failures) in 30.9s.
+  - **Backend TypeScript Compilation**: `npm run build` compiled with 0 errors.
+  - **Frontend Test Suite**: 10/10 unit tests passing (`0` failures).
+  - **Frontend Build**: Vite production build succeeded in 537ms with 0 errors.
+- **💾 Git Commits**:
+  - `85935cb`: `feat(queue): configure redis connection and bullmq job queue infrastructure`
+  - `2985160`: `feat(ai): integrate google cloud vision worker for automatic insect classification`
 
 #### Sub-Phase 2.4: Upload Experience & Discovery Detail View
 - **Status**: ⏳ Pending
