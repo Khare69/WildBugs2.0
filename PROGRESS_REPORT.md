@@ -204,12 +204,46 @@
 ### 📸 Phase 2 — Core Upload Loop
 
 #### Sub-Phase 2.1: Client Media Capture & Preprocessing
-- **Status**: ⏳ Pending
+- **Status**: ✅ Completed
 - **🛠️ Changes Performed**:
+  - **Camera Capture Hook (`src/hooks/useCamera.ts`)**:
+    - Created React hook leveraging `navigator.mediaDevices.getUserMedia()` with back-camera priority (`facingMode: { ideal: 'environment' }`).
+    - Implemented graceful fallback: catches `OverconstrainedError` or device-specific constraints and falls back to general video devices.
+    - Added offscreen HTML5 canvas frame capture producing high-resolution JPEG Blobs, base64 data URLs, and synthetic `File` instances (`takePhoto()` / `capturePhoto()`).
+    - Implemented file picker integration (`loadPhotoFromFile()`) for environments without hardware camera support.
+    - Managed hardware tracks lifecycle, ensuring all active tracks terminate on unmount or when stopping camera.
+  - **Client Image Compression Utility (`src/utils/compressImage.ts`)**:
+    - Implemented proportional aspect-ratio downscaling limiting maximum dimension to 2048px (preserving detail for AI classification while reducing payload size).
+    - Added iterative canvas JPEG quality compression targeting 300–500KB files from raw 8–15MB mobile captures.
+    - Implemented `validateImageFile()` supporting JPEG, PNG, WebP, HEIC/HEIF with maximum raw size boundary checks.
+    - Implemented `formatFileSize()` formatting raw byte integers into human-readable strings.
+    - Supported both configuration options (`compressImage(file, { maxDimension, quality })`) and positional parameters (`compressImage(file, maxWidth, quality)`).
+  - **Automated Frontend Test Suite (`src/utils/compressImage.test.ts`)**:
+    - Created comprehensive unit tests validating `formatFileSize` and `validateImageFile` against edge cases (0 bytes, negative values, missing MIME types, PDF rejection, oversized payloads).
+    - Configured `"test": "node --experimental-strip-types --test src/**/*.test.ts"` in `wildbugs-frontend/package.json`.
+    - Added `"exclude": ["src/**/*.test.ts"]` to `tsconfig.app.json` for clean client production bundling.
 - **🐛 Bugs Discovered**:
+  - React 19 / `oxlint` flagged reading `streamRef.current` directly in the hook return object as an impure render pattern (`react(refs): Cannot access refs during render`).
+  - Potential promise hang if `video.onloadedmetadata` fired prior to event listener attachment in fast camera initialization environments.
+  - TypeScript `tsc -b` raised `TS2591: Cannot find name 'node:test'` when test files were included in the Vite client production compiler target.
+  - `formatFileSize` could return `NaN B` if passed non-positive or NaN byte values.
 - **🔧 Errors Resolved**:
+  - Lifted `stream` into React state (`const [stream, setStream] = useState<MediaStream | null>(null)`), updated on stream acquisition and cleared on stop, eliminating render-time ref access.
+  - Added `videoRef.current.readyState >= 1` check and a 2-second timeout guard to ensure metadata resolution never blocks video playback.
+  - Excluded test files from `tsconfig.app.json`, keeping Vite client output pristine while running tests through Node 22 native type-stripping.
+  - Guarded `formatFileSize(bytes)` with `if (bytes <= 0 || isNaN(bytes)) return '0 B'`.
 - **🔄 Methods Replaced / Refactored**:
+  - Enhanced `useCamera` return API with both `takePhoto` and `capturePhoto` alias, plus exposed `stream` state, aligning with architecture specification.
+  - Enhanced `compressImage` to accept either options objects or positional parameters for seamless API flexibility.
 - **📝 Verification Actions & Test Results**:
+  - **Frontend Unit Tests**: `npm test` executed 10 tests across 3 suites; 10/10 passed in 186ms (0 failures).
+  - **Frontend Linter**: `npm run lint` (`oxlint`) checked 28 files with 116 rules; 0 warnings, 0 errors.
+  - **Frontend Production Build**: `npm run build` transformed 148 modules and bundled in 752ms with 0 errors.
+  - **Backend Integration Tests**: `npm test` in `wildbugs-backend`; 17/17 tests passed (0 failures).
+- **💾 Git Commits**:
+  - `ad3ae3f`: `feat(upload-ui): implement mobile camera capture hook with video stream canvas fallback`
+  - `ed2d67e`: `feat(upload-ui): add client-side canvas image compression utility`
+  - `a699435`: `feat(upload-ui): harden media capture and add client image compression unit test suite`
 
 #### Sub-Phase 2.2: Cloud Storage & Ingestion Pipeline
 - **Status**: ⏳ Pending
