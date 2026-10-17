@@ -25,6 +25,14 @@ export const BottomNav: React.FC = () => {
       </NavLink>
 
       <NavLink
+        to="/upload"
+        className={({ isActive }) => `bottom-nav-item bottom-nav-upload ${isActive ? 'bottom-nav-active' : ''}`}
+      >
+        <span className="bottom-nav-icon">📸</span>
+        <span className="bottom-nav-label">Upload</span>
+      </NavLink>
+
+      <NavLink
         to={isAuthenticated ? '/account' : '/login'}
         className={({ isActive }) => `bottom-nav-item ${isActive ? 'bottom-nav-active' : ''}`}
       >

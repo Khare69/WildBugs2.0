@@ -42,6 +42,12 @@ export const Navbar: React.FC = () => {
           >
             Species Catalog
           </NavLink>
+          <NavLink
+            to="/upload"
+            className={({ isActive }) => `nav-link nav-link-upload ${isActive ? 'nav-link-active' : ''}`}
+          >
+            📸 Record Sighting
+          </NavLink>
         </nav>
 
         {/* Auth / Profile Area */}
@@ -106,6 +112,13 @@ export const Navbar: React.FC = () => {
             onClick={closeMenu}
           >
             🐞 Species Catalog
+          </NavLink>
+          <NavLink
+            to="/upload"
+            className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
+            onClick={closeMenu}
+          >
+            📸 Record Sighting
           </NavLink>
 
           <div className="mobile-drawer-auth">
