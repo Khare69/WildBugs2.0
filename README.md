@@ -44,12 +44,14 @@
 ## 🏗️ Phase 1 Features & Architecture
 
 ### Backend API (`wildbugs-backend/`)
-- **Express + TypeScript** server with CORS, JSON body-parser with malformed JSON syntax error trapping, and centralized `AppError` handling.
+- **Express + TypeScript** server with configurable CORS from `CORS_ORIGIN`, JSON body-parser with malformed JSON syntax error trapping, and centralized `AppError` handling.
 - **Prisma v6 LTS ORM** with PostgreSQL schema supporting `User`, `Species`, `Sighting`, `Identification`, `Badge`, and `UserBadge`.
+- **Database Error Handling**: Global error pipeline maps `PrismaClientKnownRequestError` (`P2002` -> 409 Conflict, `P2025` -> 404 Not Found) and connection initialization errors (503 Service Unavailable).
 - **Database Seeder**: 30 realistic insect species across 6 taxonomic orders with complete scientific names, descriptions, habitats, diets, and conservation statuses.
-- **Authentication**: Bcryptjs password hashing (10 salt rounds), JWT signing with configurable expiration, and `authenticate` bearer middleware.
-- **Species Catalog API**: Paginated listing with search across common/scientific names and habitat, family filtering, conservation status filtering, and individual profile lookups.
-- **Strict Validation**: All incoming requests validated at the controller boundary using **Zod**.
+- **Authentication**: Bcryptjs password hashing (10 salt rounds), JWT signing with configurable expiration, and `authenticate` bearer middleware with whitespace-safe token extraction.
+- **Species Catalog API**: Paginated listing with search across common/scientific names and habitat, trimmed family filtering, conservation status filtering, and individual profile lookups.
+- **Strict Validation**: All incoming requests validated at the controller boundary using **Zod** with whitespace sanitization.
+- **Automated Test Suite**: 17 unit and integration tests powered by Node 22 native `node:test` runner and `ts-node` (`npm test`).
 
 #### API Reference (Phase 1 Endpoints)
 | Method | Endpoint | Description | Auth Required |
@@ -57,7 +59,7 @@
 | `GET` | `/api/health` | Service health probe | No |
 | `POST` | `/api/auth/register` | Register new user account | No |
 | `POST` | `/api/auth/login` | Authenticate with credentials and receive JWT | No |
-| `GET` | `/api/auth/me` | Retrieve current authenticated user profile | Yes (Bearer) |
+| `GET` | `/api/auth/me` | Retrieve current authenticated user profile & observation stats | Yes (Bearer) |
 | `GET` | `/api/species` | Paginated catalog (`?search=&family=&conservationStatus=&page=&limit=`) | No |
 | `GET` | `/api/species/families` | Distinct taxonomic families with species counts | No |
 | `GET` | `/api/species/:id` | Detailed species biological profile | No |
@@ -66,10 +68,11 @@
 
 ### Frontend Application (`wildbugs-frontend/`)
 - **Vite + React 18 + TypeScript** with fast HMR and optimized production bundling.
-- **Security-First Auth Store**: Global session managed in-memory via **Zustand** (protecting tokens from XSS token theft in `localStorage`).
-- **Axios Client**: Automatic Bearer token injection and global 401 unauthenticated response handling.
+- **Persistent Auth Session**: Global session managed via **Zustand** with `persist` middleware in `localStorage` (`wildbugs_auth_session`), keeping observer sessions intact across page refreshes with automatic `/api/auth/me` validation on startup.
+- **Axios Client**: Automatic Bearer token injection and global 401 unauthenticated response handling with automatic session cleanup.
 - **TanStack Query (React Query)**: Asynchronous server state caching, pagination handling, and retry logic.
-- **Responsive Layout Shell**: Sticky glassmorphic `Navbar`, mobile `BottomNav` bar (for screens <= 768px), and modern footer.
+- **Responsive Layout Shell**: Sticky glassmorphic `Navbar`, mobile `BottomNav` bar (with quick access to Home, Catalog, and Account), and modern footer.
+- **Observer Account Dashboard**: Dedicated protected `/account` view showing observer profile details, role chip, and real-time counts for field sightings, taxonomic identifications, and badges.
 - **Species Catalog UI**: Searchable grid with family pills, conservation status badges, loading skeletons, and profile views.
 - **Dark Forest Design System**: Modern aesthetic with glowing emerald accents, glassmorphic card panels, and responsive grid layouts.
 
@@ -78,7 +81,7 @@
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
-- **Node.js**: v18.0.0+ (v20+ LTS recommended)
+- **Node.js**: v18.0.0+ (v20+ LTS / Node 22 recommended)
 - **PostgreSQL**: v15+ (with PostGIS extension enabled)
 
 ### 2. Backend Setup
@@ -97,6 +100,9 @@ npx prisma generate
 npx prisma db push
 npm run prisma:seed
 
+# Run Automated Test Suite
+npm test
+
 # Start development server
 npm run dev
 # The API will be live at http://localhost:3001
@@ -108,6 +114,9 @@ cd wildbugs-frontend
 
 # Install dependencies
 npm install
+
+# Run Linter & Type Check
+npm run lint
 
 # Start Vite development server
 npm run dev

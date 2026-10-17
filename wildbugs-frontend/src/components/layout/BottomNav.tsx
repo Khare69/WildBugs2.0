@@ -25,7 +25,7 @@ export const BottomNav: React.FC = () => {
       </NavLink>
 
       <NavLink
-        to={isAuthenticated ? '/species' : '/login'}
+        to={isAuthenticated ? '/account' : '/login'}
         className={({ isActive }) => `bottom-nav-item ${isActive ? 'bottom-nav-active' : ''}`}
       >
         <span className="bottom-nav-icon">{isAuthenticated ? '👤' : '🔑'}</span>

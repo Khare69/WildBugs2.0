@@ -17,6 +17,12 @@ export const RegisterForm: React.FC = () => {
     e.preventDefault();
     setError(null);
 
+    const trimmedName = displayName.trim();
+    if (trimmedName.length < 2) {
+      setError('Display name must be at least 2 characters long.');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
@@ -29,7 +35,7 @@ export const RegisterForm: React.FC = () => {
 
     try {
       setIsLoading(true);
-      await register(email, password, displayName);
+      await register(email.trim(), password, trimmedName);
       navigate('/');
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || 'Registration failed. Please try again.';
@@ -40,22 +46,15 @@ export const RegisterForm: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+    <form onSubmit={handleSubmit} className="auth-form">
       {error && (
-        <div style={{
-          padding: '0.75rem 1rem',
-          borderRadius: '8px',
-          background: 'rgba(239, 68, 68, 0.15)',
-          border: '1px solid rgba(239, 68, 68, 0.35)',
-          color: '#fca5a5',
-          fontSize: '0.9rem',
-        }}>
+        <div className="form-error-banner" role="alert">
           {error}
         </div>
       )}
 
-      <div>
-        <label htmlFor="register-name" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#a7f3d0', marginBottom: '0.4rem' }}>
+      <div className="form-group">
+        <label htmlFor="register-name" className="form-label">
           Display Name
         </label>
         <input
@@ -65,21 +64,15 @@ export const RegisterForm: React.FC = () => {
           onChange={(e) => setDisplayName(e.target.value)}
           placeholder="Field Entomologist"
           required
-          style={{
-            width: '100%',
-            padding: '0.75rem 1rem',
-            borderRadius: '10px',
-            background: 'rgba(0, 0, 0, 0.4)',
-            border: '1px solid rgba(52, 211, 153, 0.25)',
-            color: '#f0fdf4',
-            fontSize: '1rem',
-            outline: 'none',
-          }}
+          minLength={2}
+          maxLength={50}
+          className="form-input"
+          autoComplete="name"
         />
       </div>
 
-      <div>
-        <label htmlFor="register-email" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#a7f3d0', marginBottom: '0.4rem' }}>
+      <div className="form-group">
+        <label htmlFor="register-email" className="form-label">
           Email Address
         </label>
         <input
@@ -89,21 +82,13 @@ export const RegisterForm: React.FC = () => {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="entomologist@wildbugs.org"
           required
-          style={{
-            width: '100%',
-            padding: '0.75rem 1rem',
-            borderRadius: '10px',
-            background: 'rgba(0, 0, 0, 0.4)',
-            border: '1px solid rgba(52, 211, 153, 0.25)',
-            color: '#f0fdf4',
-            fontSize: '1rem',
-            outline: 'none',
-          }}
+          className="form-input"
+          autoComplete="email"
         />
       </div>
 
-      <div>
-        <label htmlFor="register-password" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#a7f3d0', marginBottom: '0.4rem' }}>
+      <div className="form-group">
+        <label htmlFor="register-password" className="form-label">
           Password (min 8 characters)
         </label>
         <input
@@ -113,21 +98,14 @@ export const RegisterForm: React.FC = () => {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
           required
-          style={{
-            width: '100%',
-            padding: '0.75rem 1rem',
-            borderRadius: '10px',
-            background: 'rgba(0, 0, 0, 0.4)',
-            border: '1px solid rgba(52, 211, 153, 0.25)',
-            color: '#f0fdf4',
-            fontSize: '1rem',
-            outline: 'none',
-          }}
+          minLength={8}
+          className="form-input"
+          autoComplete="new-password"
         />
       </div>
 
-      <div>
-        <label htmlFor="register-confirm" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#a7f3d0', marginBottom: '0.4rem' }}>
+      <div className="form-group">
+        <label htmlFor="register-confirm" className="form-label">
           Confirm Password
         </label>
         <input
@@ -137,41 +115,23 @@ export const RegisterForm: React.FC = () => {
           onChange={(e) => setConfirmPassword(e.target.value)}
           placeholder="••••••••"
           required
-          style={{
-            width: '100%',
-            padding: '0.75rem 1rem',
-            borderRadius: '10px',
-            background: 'rgba(0, 0, 0, 0.4)',
-            border: '1px solid rgba(52, 211, 153, 0.25)',
-            color: '#f0fdf4',
-            fontSize: '1rem',
-            outline: 'none',
-          }}
+          minLength={8}
+          className="form-input"
+          autoComplete="new-password"
         />
       </div>
 
       <button
         type="submit"
         disabled={isLoading}
-        style={{
-          marginTop: '0.5rem',
-          padding: '0.85rem',
-          borderRadius: '10px',
-          background: isLoading ? '#065f46' : '#10b981',
-          color: '#ffffff',
-          fontWeight: 600,
-          fontSize: '1rem',
-          border: 'none',
-          boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
-          transition: 'all 0.2s',
-        }}
+        className="form-submit-btn"
       >
         {isLoading ? 'Creating Account...' : 'Register'}
       </button>
 
-      <p style={{ textAlign: 'center', fontSize: '0.9rem', color: '#6ee7b7', marginTop: '0.5rem' }}>
+      <p className="form-footer-prompt">
         Already have an account?{' '}
-        <Link to="/login" style={{ color: '#34d399', fontWeight: 600, textDecoration: 'underline' }}>
+        <Link to="/login" className="form-footer-link">
           Sign In
         </Link>
       </p>

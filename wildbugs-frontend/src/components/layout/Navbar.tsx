@@ -48,13 +48,15 @@ export const Navbar: React.FC = () => {
         <div className="navbar-auth-section">
           {isAuthenticated && user ? (
             <div className="user-profile-badge">
-              <span className="user-avatar-circle">
-                {user.displayName.charAt(0).toUpperCase()}
-              </span>
-              <div className="user-details-mini">
-                <span className="user-name">{user.displayName}</span>
-                <span className="user-role-chip">{user.role}</span>
-              </div>
+              <Link to="/account" className="user-profile-link" title="View observer account and stats" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+                <span className="user-avatar-circle">
+                  {user.displayName.charAt(0).toUpperCase()}
+                </span>
+                <div className="user-details-mini">
+                  <span className="user-name">{user.displayName}</span>
+                  <span className="user-role-chip">{user.role}</span>
+                </div>
+              </Link>
               <button
                 type="button"
                 className="btn-logout"
@@ -109,7 +111,9 @@ export const Navbar: React.FC = () => {
           <div className="mobile-drawer-auth">
             {isAuthenticated && user ? (
               <div className="mobile-user-box">
-                <p className="mobile-user-greeting">Signed in as <strong>{user.displayName}</strong></p>
+                <Link to="/account" onClick={closeMenu} style={{ textDecoration: 'none' }}>
+                  <p className="mobile-user-greeting">Signed in as <strong>{user.displayName}</strong> 👤</p>
+                </Link>
                 <button type="button" className="btn-logout mobile-full-btn" onClick={handleLogout}>
                   Sign Out
                 </button>

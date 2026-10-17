@@ -10,11 +10,15 @@ import { AuthUserPayload } from '../types/express';
 export const authenticate = (req: Request, _res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader || !authHeader.startsWith('Bearer')) {
     throw new UnauthorizedError('Authentication required: Bearer token missing');
   }
 
-  const token = authHeader.split(' ')[1];
+  const parts = authHeader.trim().split(/\s+/);
+  const token = parts[1]?.trim();
+  if (!token) {
+    throw new UnauthorizedError('Authentication required: Bearer token is empty');
+  }
 
   try {
     const decoded = jwt.verify(token, env.JWT_SECRET) as AuthUserPayload;

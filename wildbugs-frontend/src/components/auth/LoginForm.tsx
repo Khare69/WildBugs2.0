@@ -33,22 +33,15 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <form onSubmit={handleSubmit} className="auth-form">
       {error && (
-        <div style={{
-          padding: '0.75rem 1rem',
-          borderRadius: '8px',
-          background: 'rgba(239, 68, 68, 0.15)',
-          border: '1px solid rgba(239, 68, 68, 0.35)',
-          color: '#fca5a5',
-          fontSize: '0.9rem',
-        }}>
+        <div className="form-error-banner" role="alert">
           {error}
         </div>
       )}
 
-      <div>
-        <label htmlFor="login-email" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#a7f3d0', marginBottom: '0.5rem' }}>
+      <div className="form-group">
+        <label htmlFor="login-email" className="form-label">
           Email Address
         </label>
         <input
@@ -58,22 +51,13 @@ export const LoginForm: React.FC = () => {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="field.observer@wildbugs.org"
           required
-          style={{
-            width: '100%',
-            padding: '0.75rem 1rem',
-            borderRadius: '10px',
-            background: 'rgba(0, 0, 0, 0.4)',
-            border: '1px solid rgba(52, 211, 153, 0.25)',
-            color: '#f0fdf4',
-            fontSize: '1rem',
-            outline: 'none',
-            transition: 'border-color 0.2s',
-          }}
+          className="form-input"
+          autoComplete="email"
         />
       </div>
 
-      <div>
-        <label htmlFor="login-password" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#a7f3d0', marginBottom: '0.5rem' }}>
+      <div className="form-group">
+        <label htmlFor="login-password" className="form-label">
           Password
         </label>
         <input
@@ -83,42 +67,22 @@ export const LoginForm: React.FC = () => {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
           required
-          style={{
-            width: '100%',
-            padding: '0.75rem 1rem',
-            borderRadius: '10px',
-            background: 'rgba(0, 0, 0, 0.4)',
-            border: '1px solid rgba(52, 211, 153, 0.25)',
-            color: '#f0fdf4',
-            fontSize: '1rem',
-            outline: 'none',
-            transition: 'border-color 0.2s',
-          }}
+          className="form-input"
+          autoComplete="current-password"
         />
       </div>
 
       <button
         type="submit"
         disabled={isLoading}
-        style={{
-          marginTop: '0.5rem',
-          padding: '0.85rem',
-          borderRadius: '10px',
-          background: isLoading ? '#065f46' : '#10b981',
-          color: '#ffffff',
-          fontWeight: 600,
-          fontSize: '1rem',
-          border: 'none',
-          boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
-          transition: 'all 0.2s',
-        }}
+        className="form-submit-btn"
       >
         {isLoading ? 'Signing In...' : 'Sign In'}
       </button>
 
-      <p style={{ textAlign: 'center', fontSize: '0.9rem', color: '#6ee7b7', marginTop: '0.5rem' }}>
+      <p className="form-footer-prompt">
         Don't have an account?{' '}
-        <Link to="/register" style={{ color: '#34d399', fontWeight: 600, textDecoration: 'underline' }}>
+        <Link to="/register" className="form-footer-link">
           Create an Account
         </Link>
       </p>

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
+import { Prisma } from '@prisma/client';
 import { AppError } from '../utils/errors';
 import env from '../config/env';
 
@@ -66,7 +67,40 @@ export const errorHandler: ErrorRequestHandler = (
     return;
   }
 
-  // 3. Handle Unexpected System / Runtime Errors (Status 500)
+  // 4. Handle Prisma Database Client Errors
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err.code === 'P2002') {
+      const target = Array.isArray(err.meta?.target)
+        ? (err.meta.target as string[]).join(', ')
+        : 'field';
+      res.status(409).json({
+        status: 'fail',
+        message: `A record with this ${target} already exists`,
+        error: 'Unique constraint conflict',
+      });
+      return;
+    }
+    if (err.code === 'P2025') {
+      res.status(404).json({
+        status: 'fail',
+        message: 'The requested record was not found in the database',
+        error: 'Record not found',
+      });
+      return;
+    }
+  }
+
+  if (err instanceof Prisma.PrismaClientInitializationError) {
+    console.error(`[DATABASE CONNECTION ERROR] Could not connect to PostgreSQL:`, err.message);
+    res.status(503).json({
+      status: 'error',
+      message: 'Database service is temporarily unavailable. Please verify database connectivity.',
+      error: 'Service unavailable',
+    });
+    return;
+  }
+
+  // 5. Handle Unexpected System / Runtime Errors (Status 500)
   const errorObj = err instanceof Error ? err : new Error(String(err));
   console.error(`[ERROR] Unhandled Exception on ${req.method} ${req.url}:`, errorObj);
 

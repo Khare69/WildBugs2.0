@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import type { User } from '../types/auth';
 
 interface AuthState {
@@ -11,30 +12,38 @@ interface AuthState {
 }
 
 /**
- * Global authentication store powered by Zustand.
- * Security Note: Tokens are maintained in memory to protect against XSS token harvesting.
+ * Global authentication store powered by Zustand with localStorage persistence.
+ * Preserves observer session across page refreshes and auto-syncs with backend.
  */
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  token: null,
-  isAuthenticated: false,
-  setAuth: (user: User, token: string) => {
-    set({
-      user,
-      token,
-      isAuthenticated: true,
-    });
-  },
-  setUser: (user: User) => {
-    set({ user });
-  },
-  logout: () => {
-    set({
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
       user: null,
       token: null,
       isAuthenticated: false,
-    });
-  },
-}));
+      setAuth: (user: User, token: string) => {
+        set({
+          user,
+          token,
+          isAuthenticated: true,
+        });
+      },
+      setUser: (user: User) => {
+        set({ user });
+      },
+      logout: () => {
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+        });
+      },
+    }),
+    {
+      name: 'wildbugs_auth_session',
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);
 
 export default useAuthStore;

@@ -5,11 +5,23 @@ import errorHandler from './middleware/errorHandler';
 import authRoutes from './routes/authRoutes';
 import speciesRoutes from './routes/speciesRoutes';
 
+import env from './config/env';
+
 const app: Express = express();
 
 // Middleware Stack
-app.use(cors());
-app.use(express.json());
+const corsOrigins =
+  env.CORS_ORIGIN === '*'
+    ? '*'
+    : env.CORS_ORIGIN.split(',').map((origin) => origin.trim());
+
+app.use(
+  cors({
+    origin: corsOrigins,
+    credentials: true,
+  })
+);
+app.use(express.json({ limit: '10mb' }));
 
 // Base Health Check Route
 app.get('/api/health', (_req: Request, res: Response) => {

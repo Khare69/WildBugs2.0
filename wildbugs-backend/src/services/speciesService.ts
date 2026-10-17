@@ -36,16 +36,16 @@ export class SpeciesService {
 
     const where: Prisma.SpeciesWhereInput = {};
 
-    if (query.family) {
+    if (query.family && query.family.trim().length > 0) {
       where.family = {
-        equals: query.family,
+        equals: query.family.trim(),
         mode: 'insensitive',
       };
     }
 
-    if (query.conservationStatus) {
+    if (query.conservationStatus && query.conservationStatus.trim().length > 0) {
       where.conservationStatus = {
-        equals: query.conservationStatus,
+        equals: query.conservationStatus.trim(),
         mode: 'insensitive',
       };
     }

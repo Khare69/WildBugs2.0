@@ -1,13 +1,30 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Navbar from './Navbar';
 import BottomNav from './BottomNav';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import authApi from '../../api/authApi';
 
 interface AppLayoutProps {
   children: React.ReactNode;
 }
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
+  const { token, isAuthenticated, logout } = useAuth();
+
+  // On mount, if a session token exists in storage, verify it against backend /api/auth/me
+  useEffect(() => {
+    if (token && isAuthenticated) {
+      authApi.getMe().catch((err) => {
+        if (err.response?.status === 401) {
+          logout();
+        }
+      });
+    }
+  }, [token, isAuthenticated, logout]);
+
   return (
     <div className="app-layout">
       <Navbar />
@@ -38,12 +55,20 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               <li>
                 <Link to="/species">Species Catalog</Link>
               </li>
-              <li>
-                <Link to="/register">Create Observer Account</Link>
-              </li>
-              <li>
-                <Link to="/login">Sign In</Link>
-              </li>
+              {isAuthenticated ? (
+                <li>
+                  <Link to="/account">My Account & Stats</Link>
+                </li>
+              ) : (
+                <>
+                  <li>
+                    <Link to="/register">Create Observer Account</Link>
+                  </li>
+                  <li>
+                    <Link to="/login">Sign In</Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
 
@@ -54,13 +79,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               <span>Phase 1 Architecture Active</span>
             </div>
             <p className="footer-notice">
-              Data protected with bcryptjs & JWT in-memory store. PostGIS & AI Vision engine in Phase 2/3.
+              Data protected with bcryptjs & JWT session persistence. PostGIS & AI Vision engine in Phase 2/3.
             </p>
           </div>
         </div>
 
         <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} WildBugs. Open biodiversity science & conservation.</p>
+          <p>© {CURRENT_YEAR} WildBugs. Open biodiversity science & conservation.</p>
         </div>
       </footer>
 

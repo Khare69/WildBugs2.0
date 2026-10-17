@@ -3,22 +3,31 @@ import { z } from 'zod';
 import authService from '../services/authService';
 import { asyncHandler } from '../middleware/errorHandler';
 import prisma from '../database/prisma';
-import { NotFoundError } from '../utils/errors';
+import { NotFoundError, UnauthorizedError } from '../utils/errors';
 
 export const registerSchema = z.object({
-  email: z.string().email('Please provide a valid email address'),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email('Please provide a valid email address'),
   password: z
     .string()
     .min(8, 'Password must contain at least 8 characters')
     .max(100, 'Password exceeds maximum length'),
   displayName: z
     .string()
+    .trim()
     .min(2, 'Display name must be at least 2 characters')
     .max(50, 'Display name cannot exceed 50 characters'),
 });
 
 export const loginSchema = z.object({
-  email: z.string().email('Please provide a valid email address'),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email('Please provide a valid email address'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -51,7 +60,7 @@ export const loginHandler = asyncHandler(async (req: Request, res: Response) => 
 export const meHandler = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
   if (!userId) {
-    throw new NotFoundError('User profile not found');
+    throw new UnauthorizedError('Authentication required: Session identity missing');
   }
 
   const user = await prisma.user.findUnique({
