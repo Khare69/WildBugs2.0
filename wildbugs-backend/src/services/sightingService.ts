@@ -1,6 +1,7 @@
 import { Sighting } from '@prisma/client';
 import prisma from '../database/prisma';
 import imageService from './imageService';
+import { addIdentificationJob } from '../jobs/queue';
 import { NotFoundError, ValidationError } from '../utils/errors';
 
 export interface CreateSightingInput {
@@ -85,6 +86,9 @@ export class SightingService {
         },
       },
     });
+
+    // 5. Enqueue background computer vision insect identification job
+    await addIdentificationJob(sighting.id, sighting.photoUrl);
 
     return sighting;
   }
