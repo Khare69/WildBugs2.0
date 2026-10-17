@@ -246,12 +246,52 @@
   - `a699435`: `feat(upload-ui): harden media capture and add client image compression unit test suite`
 
 #### Sub-Phase 2.2: Cloud Storage & Ingestion Pipeline
-- **Status**: ⏳ Pending
+- **Status**: ✅ Completed
 - **🛠️ Changes Performed**:
+  - **Dependencies Installed**: Added `multer`, `cloudinary`, and `@types/multer` to `wildbugs-backend`.
+  - **Cloudinary Configuration (`src/config/cloudinary.ts`)**:
+    - Configured Cloudinary v2 SDK from validated environment variables (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`).
+    - Added `isCloudinaryConfigured()` status checker and updated `src/config/env.ts` with optional schema defaults for offline/testing support.
+  - **Multer Memory Storage Middleware (`src/middleware/upload.ts`)**:
+    - Configured `multer.memoryStorage()` keeping uploaded bytes in RAM for streaming to Cloudinary.
+    - Set 10MB maximum file size limit (`10 * 1024 * 1024` bytes).
+    - Implemented strict MIME filtering accepting only `image/jpeg`, `image/png`, and `image/webp`.
+    - Created `uploadSinglePhoto` middleware accepting both `'photo'` and `'image'` form field names.
+  - **Global Multer Error Interceptor (`src/middleware/errorHandler.ts`)**:
+    - Added dedicated handler for `multer.MulterError` mapping `LIMIT_FILE_SIZE` and related upload errors to HTTP 400 Bad Request JSON envelopes.
+  - **Cloud Image Upload Service (`src/services/imageService.ts`)**:
+    - Implemented `uploadImage(buffer, folder)` streaming buffers to Cloudinary.
+    - Automated 300x300 thumbnail URL generation (`w_300,h_300,c_fill`).
+    - Built transparent offline/mock fallback for local and CI testing environments.
+    - Implemented `deleteImage(publicId)` for rollback and asset deletion.
+  - **Sighting Ingestion Service (`src/services/sightingService.ts`)**:
+    - Implemented `create(userId, input)` uploading photos, validating coordinates, linking optional species, and persisting in Prisma database with `PENDING` status.
+    - Implemented `getById(id)` with user, species, and identification relation joins.
+    - Implemented `getUserSightings(userId, page, limit)` with paginated query results.
+    - Implemented `getRecent(limit)` for public observation feed.
+  - **Sighting API Controller & Routes (`sightingController.ts`, `sightingRoutes.ts`)**:
+    - Implemented `POST /api/sightings` with JWT authentication and multipart photo upload.
+    - Added Zod coercion schema for latitude (-90 to 90) and longitude (-180 to 180).
+    - Mounted `/api/sightings` endpoints in `src/app.ts`.
+  - **Automated Integration & Unit Tests**:
+    - Created `tests/unit/services/imageService.test.ts` (upload and delete tests).
+    - Created `tests/integration/routes/sightings.test.ts` (6 route validation tests).
 - **🐛 Bugs Discovered**:
+  - `sightingController.ts` attempted to access `req.user.id` when `AuthUserPayload` declared `userId`.
+  - Unhandled Multer file size errors defaulted to generic 500 internal server errors without custom handler.
 - **🔧 Errors Resolved**:
+  - Updated `AuthUserPayload` in `src/types/express.d.ts` with optional `id?: string` alias and resolved via `req.user?.userId || req.user?.id`.
+  - Added `if (err instanceof multer.MulterError)` to `errorHandler.ts` returning structured 400 JSON error envelopes.
 - **🔄 Methods Replaced / Refactored**:
+  - Replaced rigid field name expectation with `uploadSinglePhoto` supporting both `'photo'` and `'image'` field inputs.
 - **📝 Verification Actions & Test Results**:
+  - **Backend Test Suite**: 25/25 tests passing across 7 test suites (`0` failures) in 17.3s.
+  - **Backend TypeScript Compilation**: `npm run build` compiled with 0 errors.
+  - **Frontend Test Suite**: 10/10 unit tests passing (`0` failures) in 348ms.
+  - **Frontend Linter & Build**: `oxlint` 0 errors/warnings; `npm run build` bundled 148 modules in 866ms.
+- **💾 Git Commits**:
+  - `faece9f`: `feat(storage): configure multer memory storage and cloudinary image upload service`
+  - `b5c539e`: `feat(sightings): implement sighting creation endpoint with coordinates and image metadata`
 
 #### Sub-Phase 2.3: Asynchronous AI Vision Pipeline
 - **Status**: ⏳ Pending
