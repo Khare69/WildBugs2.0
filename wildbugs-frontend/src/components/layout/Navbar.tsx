@@ -43,6 +43,12 @@ export const Navbar: React.FC = () => {
             Species Catalog
           </NavLink>
           <NavLink
+            to="/map"
+            className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}
+          >
+            🗺️ Biodiversity Map
+          </NavLink>
+          <NavLink
             to="/upload"
             className={({ isActive }) => `nav-link nav-link-upload ${isActive ? 'nav-link-active' : ''}`}
           >
@@ -112,6 +118,13 @@ export const Navbar: React.FC = () => {
             onClick={closeMenu}
           >
             🐞 Species Catalog
+          </NavLink>
+          <NavLink
+            to="/map"
+            className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
+            onClick={closeMenu}
+          >
+            🗺️ Biodiversity Map
           </NavLink>
           <NavLink
             to="/upload"

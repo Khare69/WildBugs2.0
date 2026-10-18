@@ -427,12 +427,48 @@
   - `feat(map-api): implement bounding-box geojson and sighting density heatmap endpoints`
 
 #### Sub-Phase 3.2: Interactive Map UI & Rendering Engine
-- **Status**: ⏳ Pending
+- **Status**: ✅ Completed
 - **🛠️ Changes Performed**:
+  - **Leaflet & Mapping Dependencies**:
+    - Installed `leaflet`, `react-leaflet`, `leaflet.markercluster`, `@types/leaflet.markercluster`, `leaflet.heat`, and `@types/leaflet.heat`.
+  - **Map Store State Management (`src/store/mapStore.ts`)**:
+    - Built Zustand store with persistence middleware (`wildbugs_map_state`) storing viewport center (`[lat, lng]`) and zoom level.
+    - Synchronized visible bounding box (`minLat`, `maxLat`, `minLng`, `maxLng`), active filters (`speciesId`, `dateFrom`, `dateTo`), view mode (`markers` vs `heatmap`), and selected sighting IDs.
+  - **Map API Client & Types (`src/api/mapApi.ts`, `src/types/map.ts`)**:
+    - Defined TypeScript interfaces for RFC 7946 GeoJSON Features, geometries, and FeatureCollections.
+    - Implemented `fetchSightingsGeoJSON(bounds, filters)` and `fetchHeatmapData(bounds, filters, gridSize)`.
+  - **Interactive Map Component (`src/components/map/BiodiversityMap.tsx`)**:
+    - Built full-screen Leaflet `MapContainer` with OpenStreetMap tile layer and dark theme canvas.
+    - Implemented `MapEventsHandler` listening to `moveend` to dynamically capture visible bounds and viewport changes.
+    - Wired TanStack Query (`useQuery`) to automatically fetch GeoJSON sightings for visible bounds with 30s caching.
+    - Implemented `LocateControl` quick action button centering map to user's GPS coordinates using `navigator.geolocation`.
+    - Added map status HUD pill reporting real-time observation counts and scanning states.
+  - **Custom Insect Pin Markers & Popups (`src/components/map/SightingMarker.tsx`)**:
+    - Implemented custom `L.divIcon` pins with glowing circular containers, insect emoji badge, and dynamic status indicator dots.
+    - Created rich popup cards displaying observation thumbnail, common name, italicized scientific name, observer badge, formatted date, AI match confidence score, and direct link to inspection view.
+  - **Full-Screen Map View & Navigation (`src/pages/MapPage.tsx`, `App.tsx`, `Navbar.tsx`, `BottomNav.tsx`)**:
+    - Created `MapPage.tsx` importing Leaflet CSS and rendering `BiodiversityMap`.
+    - Added `/map` route in `App.tsx`.
+    - Added "🗺️ Biodiversity Map" link in desktop navbar, mobile drawer, and mobile bottom navigation bar.
+  - **Shared Map Utilities & Test Suite (`src/utils/mapUtils.ts`, `src/utils/mapUtils.test.ts`, `src/store/mapStore.test.ts`)**:
+    - Created pure helper functions for badge color mapping, date formatting, and coordinate conversion (`[lng, lat]` to `[lat, lng]`).
+    - Added 14 unit tests across map utilities and map store.
 - **🐛 Bugs Discovered**:
+  - Leaflet cannot be imported at the module top level in Node.js test runners without throwing `ReferenceError: window is not defined`.
+  - Node.js ESM test runner with `--experimental-strip-types` required explicit `.ts` file extensions in test imports.
+  - Oxlint identified fast-refresh warning for non-component export in `SightingMarker.tsx` and an unused state parameter in `mapStore.ts`.
 - **🔧 Errors Resolved**:
+  - Extracted pure mapping logic into `mapUtils.ts` and encapsulated Leaflet icon instantiation inside `SightingMarker.tsx`, allowing clean Node.js test execution.
+  - Added explicit `.ts` file extensions to test imports (`./mapStore.ts`, `./mapUtils.ts`).
+  - Addressed all oxlint rules, achieving 0 warnings and 0 errors across 48 files.
 - **🔄 Methods Replaced / Refactored**:
+  - Replaced Leaflet default PNG pin assets with SVG/HTML `L.divIcon` components, completely bypassing Vite asset resolution quirks and elevating visual polish.
 - **📝 Verification Actions & Test Results**:
+  - **Frontend Test Suite**: 33/33 unit tests passing across 10 test suites (`0` failures) in 542ms.
+  - **Frontend Linter & Build**: `oxlint` 0 warnings/errors; `npm run build` compiled 206 modules into production bundle in 1.83s.
+  - **Backend Test Suite**: 50/50 tests passing across 11 test suites (`0` failures).
+- **💾 Git Commits**:
+  - `feat(map-ui): integrate leaflet map container with custom insect markers and popups`
 
 #### Sub-Phase 3.3: Advanced Visualization & Filter Controls
 - **Status**: ⏳ Pending

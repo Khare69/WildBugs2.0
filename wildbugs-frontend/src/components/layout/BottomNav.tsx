@@ -17,11 +17,11 @@ export const BottomNav: React.FC = () => {
       </NavLink>
 
       <NavLink
-        to="/species"
+        to="/map"
         className={({ isActive }) => `bottom-nav-item ${isActive ? 'bottom-nav-active' : ''}`}
       >
-        <span className="bottom-nav-icon">🐞</span>
-        <span className="bottom-nav-label">Catalog</span>
+        <span className="bottom-nav-icon">🗺️</span>
+        <span className="bottom-nav-label">Map</span>
       </NavLink>
 
       <NavLink

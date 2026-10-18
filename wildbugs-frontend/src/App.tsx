@@ -9,6 +9,7 @@ import RegisterPage from './pages/RegisterPage';
 import AccountPage from './pages/AccountPage';
 import UploadPage from './pages/UploadPage';
 import SightingDetailPage from './pages/SightingDetailPage';
+import MapPage from './pages/MapPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -20,6 +21,7 @@ export const App: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/species" element={<SpeciesListPage />} />
           <Route path="/species/:id" element={<SpeciesDetailPage />} />
+          <Route path="/map" element={<MapPage />} />
           <Route
             path="/upload"
             element={
