@@ -5,6 +5,7 @@ import errorHandler from './middleware/errorHandler';
 import authRoutes from './routes/authRoutes';
 import speciesRoutes from './routes/speciesRoutes';
 import sightingRoutes from './routes/sightingRoutes';
+import mapRoutes from './routes/mapRoutes';
 
 import env from './config/env';
 
@@ -37,6 +38,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/species', speciesRoutes);
 app.use('/api/sightings', sightingRoutes);
+app.use('/api/map', mapRoutes);
 
 // 404 Catch-All Handler for Undefined Routes
 app.all('*', (req: Request, _res: Response, next: NextFunction) => {
