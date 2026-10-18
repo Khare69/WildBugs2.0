@@ -39,3 +39,19 @@ export const formatObservationDate = (dateStr: string): string => {
     return dateStr;
   }
 };
+
+/**
+ * Calculates ISO YYYY-MM-DD date range for a relative number of past days.
+ */
+export const calculateDatePresetRange = (
+  days: number,
+  now = new Date()
+): { dateFrom: string; dateTo: string } => {
+  const from = new Date(now);
+  from.setDate(now.getDate() - days);
+  return {
+    dateFrom: from.toISOString().split('T')[0],
+    dateTo: now.toISOString().split('T')[0],
+  };
+};
+

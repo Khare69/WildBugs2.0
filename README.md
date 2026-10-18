@@ -34,10 +34,44 @@
 |:---:|:---|:---:|:---|
 | **Phase 1** | **Foundation** | ✅ Completed | Scaffolding, Prisma v6 schema, 30-species seed, JWT auth, species catalog & layout shell |
 | **Phase 2** | **Core Upload Loop** | ✅ Completed | Media capture, Cloudinary pipeline, async Cloud Vision AI worker, discovery view |
-| **Phase 3** | **Biodiversity Map** | ⏳ Upcoming | PostGIS spatial queries, interactive Leaflet map, clustering, density heatmap |
+| **Phase 3** | **Biodiversity Map** | ✅ Completed | PostGIS spatial queries, interactive Leaflet map, clustering, density heatmap |
 | **Phase 4** | **Engagement & Gamification** | ⏳ Upcoming | User profiles, field journal, streak engine, automated badges, seasonal challenges |
 | **Phase 5** | **Community & Moderation** | ⏳ Upcoming | Forum threads, expert verification system, notification bell with polling |
 | **Phase 6** | **Polish, Hardening & Deployment** | ⏳ Upcoming | PWA offline sync, Redis caching, rate limiting, Docker containerization, health probes |
+
+---
+
+## 🗺️ Phase 3 Features & Architecture
+
+### Geospatial Backend & Spatial Queries (`wildbugs-backend/`)
+- **GeoJSON Bounding Box API (`/api/map/sightings`)**:
+  - Implements RFC 7946 standard `FeatureCollection` bounded by `minLat`, `maxLat`, `minLng`, `maxLng`.
+  - Point coordinates serialized in standard `[longitude, latitude]` format.
+  - Rich feature properties: species name, scientific name, family, thumbnail, status, AI confidence, observation timestamp, observer name.
+  - Supports filtering by `speciesId`, `dateFrom`, and `dateTo`.
+  - Antimeridian wrap-around handling using Boolean `OR` logic for Pacific coordinate spans.
+- **Heatmap Density Aggregation (`/api/map/heatmap`)**:
+  - Aggregates sightings on the fly into configurable spatial grid cells (~0.01° ≈ 1.1 km).
+  - Sanitizes floating-point precision artifacts and calculates intensity weights.
+  - Returns formatted `[latitude, longitude, intensity]` tuples ready for Leaflet-heat layers.
+- **Strict Query Validation**: Zod schema boundary checking (-90/90 lat, -180/180 lng, 0.001/1.0 grid size) and cross-field refinements (`minLat <= maxLat`, `dateFrom <= dateTo`).
+
+#### API Reference (Geospatial Endpoints)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET` | `/api/map/sightings` | GeoJSON FeatureCollection bounded by `minLat`, `maxLat`, `minLng`, `maxLng` with species & date filters | No |
+| `GET` | `/api/map/heatmap` | Spatial grid density points `[lat, lng, intensity]` with bounding box and species filters | No |
+
+---
+
+### Interactive Biodiversity Map UI (`wildbugs-frontend/`)
+- **Full-Screen Leaflet Map (`/map`)**: Leaflet `MapContainer` with OpenStreetMap tile layer, persistent viewport state, and dynamic bounding box listener (`moveend`).
+- **Marker Clustering Layer (`MarkerCluster.tsx`)**: High-performance grouping of dense observation markers at lower zoom levels with glowing cluster badges and smooth spiderfy animations.
+- **Toggleable Heatmap Layer (`HeatmapLayer.tsx`)**: Multi-tier density color gradient visualizing regional biodiversity hotspots via `leaflet.heat`.
+- **Collapsible Filter Drawer (`MapFilters.tsx`)**: Floating panel with layer switcher (Pins vs Heatmap), species dropdown selector, date range picker, and quick presets.
+- **Custom Insect Pin Markers (`SightingMarker.tsx`)**: Custom `L.divIcon` markers with glowing circular halos, insect emoji badge, and status indicator dots. Rich popups linking to discovery detail.
+- **Persistent Viewport Store (`mapStore.ts`)**: Zustand store persisting viewport coordinates and filters across navigation.
+- **Automated Test Coverage**: 85 automated unit and integration tests passing across full stack (50 backend, 35 frontend).
 
 ---
 

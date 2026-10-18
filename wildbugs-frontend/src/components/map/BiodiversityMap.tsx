@@ -3,7 +3,9 @@ import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import { useQuery } from '@tanstack/react-query';
 import useMapStore from '../../store/mapStore';
 import mapApi from '../../api/mapApi';
-import SightingMarker from './SightingMarker';
+import MarkerCluster from './MarkerCluster';
+import HeatmapLayer from './HeatmapLayer';
+import MapFilters from './MapFilters';
 import type { MapBounds } from '../../types/map';
 
 interface MapEventsHandlerProps {
@@ -119,6 +121,7 @@ const LocateControl: React.FC = () => {
 
 export const BiodiversityMap: React.FC = () => {
   const { viewport, bounds, filters, setViewport, setBounds } = useMapStore();
+  const isHeatmapMode = filters.viewMode === 'heatmap';
 
   const handleBoundsChange = useCallback(
     (newBounds: MapBounds) => {
@@ -134,12 +137,12 @@ export const BiodiversityMap: React.FC = () => {
     [setViewport]
   );
 
-  // TanStack Query fetching GeoJSON sightings for visible bounds
+  // 1. TanStack Query fetching GeoJSON sightings for visible bounds
   const {
     data: geoJsonData,
-    isLoading,
-    isFetching,
-    error,
+    isLoading: isSightingsLoading,
+    isFetching: isSightingsFetching,
+    error: sightingsError,
   } = useQuery({
     queryKey: [
       'mapSightings',
@@ -152,11 +155,36 @@ export const BiodiversityMap: React.FC = () => {
       filters.dateTo,
     ],
     queryFn: () => mapApi.fetchSightingsGeoJSON(bounds, filters),
-    enabled: !!bounds,
+    enabled: !!bounds && !isHeatmapMode,
+    staleTime: 30000,
+  });
+
+  // 2. TanStack Query fetching Heatmap density points for visible bounds
+  const {
+    data: heatmapPoints = [],
+    isLoading: isHeatmapLoading,
+    isFetching: isHeatmapFetching,
+    error: heatmapError,
+  } = useQuery({
+    queryKey: [
+      'mapHeatmap',
+      bounds?.minLat,
+      bounds?.maxLat,
+      bounds?.minLng,
+      bounds?.maxLng,
+      filters.speciesId,
+      filters.dateFrom,
+      filters.dateTo,
+    ],
+    queryFn: () => mapApi.fetchHeatmapData(bounds, filters),
+    enabled: !!bounds && isHeatmapMode,
     staleTime: 30000,
   });
 
   const features = geoJsonData?.features || [];
+  const isLoading = isHeatmapMode ? isHeatmapLoading : isSightingsLoading;
+  const isFetching = isHeatmapMode ? isHeatmapFetching : isSightingsFetching;
+  const error = isHeatmapMode ? heatmapError : sightingsError;
 
   return (
     <div
@@ -202,9 +230,14 @@ export const BiodiversityMap: React.FC = () => {
         <span>
           {isLoading
             ? 'Scanning region...'
+            : isHeatmapMode
+            ? `${heatmapPoints.length} density cells mapped`
             : `${features.length} insect sightings in view`}
         </span>
       </div>
+
+      {/* Floating Filter Drawer Component */}
+      <MapFilters />
 
       {/* Main Leaflet Map Container */}
       <MapContainer
@@ -224,10 +257,12 @@ export const BiodiversityMap: React.FC = () => {
           onViewportChange={handleViewportChange}
         />
 
-        {/* Render Observation Pins */}
-        {features.map((feature) => (
-          <SightingMarker key={feature.id} feature={feature} />
-        ))}
+        {/* View Mode Layer Switching: Clustered Markers vs Heatmap */}
+        {isHeatmapMode ? (
+          <HeatmapLayer points={heatmapPoints} />
+        ) : (
+          <MarkerCluster features={features} />
+        )}
 
         <LocateControl />
       </MapContainer>
@@ -250,7 +285,7 @@ export const BiodiversityMap: React.FC = () => {
             boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
           }}
         >
-          Failed to load map sightings. Retrying...
+          Failed to load map data. Retrying...
         </div>
       )}
     </div>

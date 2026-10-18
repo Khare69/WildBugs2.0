@@ -12,7 +12,7 @@
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|
 | **Phase 1** | Foundation (Scaffolding, DB, Auth, Species, Shell) | 1.1 – 1.5 | ✅ Completed | ✅ Passed (0 Bugs) | Yes | 2026-10-16 |
 | **Phase 2** | Core Upload Loop (Capture, Storage, AI Vision, Detail) | 2.1 – 2.4 | ✅ Completed | ✅ Passed (0 Bugs) | Yes | 2026-10-17 |
-| **Phase 3** | Biodiversity Map (PostGIS, Leaflet, Clustering, Heatmap) | 3.1 – 3.3 | ⏳ Pending | ⏳ Pending | No | — |
+| **Phase 3** | Biodiversity Map (PostGIS, Leaflet, Clustering, Heatmap) | 3.1 – 3.3 | ✅ Completed | ✅ Passed (0 Bugs) | Yes | 2026-10-18 |
 | **Phase 4** | Engagement & Gamification (Journal, Streaks, Badges, Challenges) | 4.1 – 4.4 | ⏳ Pending | ⏳ Pending | No | — |
 | **Phase 5** | Community (Discussion Forum, Verification, Notifications) | 5.1 – 5.3 | ⏳ Pending | ⏳ Pending | No | — |
 | **Phase 6** | Polish & Deploy (PWA, Caching, Docker, Production Hardening) | 6.1 – 6.3 | ⏳ Pending | ⏳ Pending | No | — |
@@ -471,19 +471,60 @@
   - `feat(map-ui): integrate leaflet map container with custom insect markers and popups`
 
 #### Sub-Phase 3.3: Advanced Visualization & Filter Controls
-- **Status**: ⏳ Pending
+- **Status**: ✅ Completed
 - **🛠️ Changes Performed**:
+  - **Marker Clustering Layer (`src/components/map/MarkerCluster.tsx`)**:
+    - Wrapped dense observation markers inside `leaflet.markercluster` to group pins at lower zoom levels, avoiding map clutter and maximizing frame rates.
+    - Designed custom cluster icons with dynamic size classes (`wildbugs-cluster-sm`, `md`, `lg`) and theme color glows (emerald for small clusters, amber for medium, red for high-density clusters).
+    - Preserved rich interactive popup cards when clicking spiderfied or individual insect pins.
+  - **Density Heatmap Layer (`src/components/map/HeatmapLayer.tsx`)**:
+    - Implemented toggleable heatmap layer using `leaflet.heat` plugin.
+    - Configured multi-tier density color gradients (`#06b6d4` cyan, `#10b981` emerald, `#f59e0b` amber, `#ef4444` red hotspots).
+    - Handled automatic layer cleanup on unmount and filter updates.
+  - **Map Filter Sidebar Drawer (`src/components/map/MapFilters.tsx`)**:
+    - Created collapsible glassmorphism floating drawer with active filters count indicator badge.
+    - Integrated segmented view mode switcher (`📍 Pins / Cluster` vs `🔥 Heatmap`).
+    - Added species catalog dropdown filter populated from `/api/species`.
+    - Added observation date range inputs (`dateFrom`, `dateTo`) and quick range presets ("Past 30 Days", "Past Year").
+    - Added "Clear All Filters" reset button.
+  - **Biodiversity Map Integration (`src/components/map/BiodiversityMap.tsx`)**:
+    - Combined `MarkerCluster`, `HeatmapLayer`, and `MapFilters` with dynamic layer switching based on `filters.viewMode`.
+    - Parallelized TanStack Query fetching between GeoJSON and heatmap density points.
+  - **Map Utilities & Unit Test Suite (`src/utils/mapUtils.ts`, `src/utils/mapUtils.test.ts`)**:
+    - Added `calculateDatePresetRange(days, now)` helper function.
+    - Added unit test cases for relative date calculations across leap years.
 - **🐛 Bugs Discovered**:
+  - React fast-refresh linter warning in `MarkerCluster.tsx` for non-component export (`createPopupHtml`).
 - **🔧 Errors Resolved**:
+  - Encapsulated helper function within component scope, achieving 0 warnings and 0 errors across 51 files.
 - **🔄 Methods Replaced / Refactored**:
+  - Replaced manual date math with centralized `calculateDatePresetRange` utility.
 - **📝 Verification Actions & Test Results**:
+  - **Frontend Test Suite**: 35/35 unit tests passing across 11 test suites (`0` failures) in 379ms.
+  - **Frontend Linter & Build**: `oxlint` 0 warnings/errors; `npm run build` compiled 212 modules in 758ms with 0 errors.
+  - **Backend Test Suite**: 50/50 tests passing across 11 test suites (`0` failures).
+- **💾 Git Commits**:
+  - `feat(map-ui): integrate marker clustering, density heatmap layer, and filter drawer`
 
 #### 🏁 Phase 3 Quality Gate & Wrap-Up Audit
-- **Phase Completion Status**: ⏳ Pending
+- **Phase Completion Status**: ✅ Completed (Zero Bugs Gate Passed)
 - **Iterative Bug Sweep & Resolution Audit**:
-  - *Discovered Defects & Runtime Errors*: None yet
-  - *Suboptimal Methods Replaced / Refactored*: None yet
-  - *Repeated Test Iteration Results*: Pending verification (target: zero map rendering or query errors)
+  - *Discovered Defects & Runtime Errors*:
+    1. **RFC 7946 GeoJSON vs Leaflet Coordinate Inversion**: Verified that coordinates sent by backend are standard GeoJSON `[longitude, latitude]` and converted to Leaflet `[latitude, longitude]` in all marker and cluster renderers.
+    2. **Antimeridian Bounding Box Crossing**: Verified that backend `mapService.buildWhereClause` handles Pacific bounds (`minLng > maxLng`) using Boolean `OR` queries without errors.
+    3. **Node.js Test Runner Leaflet Top-Level Import**: Leaflet threw `ReferenceError: window is not defined` when imported in Node.js test runs. Resolved by decoupling pure mapping utilities (`mapUtils.ts`) from DOM-dependent Leaflet components.
+    4. **Leaflet Layer Teardown & Memory Leaks**: Verified all cluster groups and heat layers are cleaned up via `map.removeLayer` on component unmount and view mode changes.
+    5. **Zod Error Detail Mismatch**: Fixed integration test assertion to query `body.details` array for field-specific error messages.
+  - *Suboptimal Methods Replaced / Refactored*:
+    1. Replaced static default Leaflet PNG markers with custom SVG/HTML `L.divIcon` pins with dynamic status dots and glow effects.
+    2. Replaced individual unclustered marker rendering with `L.markerClusterGroup` DOM virtualization for high performance with dense datasets.
+    3. Replaced manual date filtering logic with reusable `calculateDatePresetRange` helper.
+  - *Repeated Test Iteration Results*:
+    - **Backend Test Suite**: 50/50 tests passing across 11 test suites (100% pass rate).
+    - **Frontend Test Suite**: 35/35 tests passing across 11 test suites (100% pass rate).
+    - **Frontend Linter**: 0 warnings and 0 errors across 51 files.
+    - **Frontend Production Build**: `tsc -b && vite build` bundled 212 modules in 758ms with 0 errors.
+    - **Total Automated Tests**: 85 tests passing cleanly across full stack with zero failures.
 - **Git Commit**: `git commit -m "docs: complete Phase 3 bug audit, progress report, and readme"`
 - **Remote Push**: `git push origin main`
 

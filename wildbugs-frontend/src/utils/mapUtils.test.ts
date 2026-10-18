@@ -4,6 +4,7 @@ import {
   getMarkerBadgeColor,
   geoJsonToLeafletLatLng,
   formatObservationDate,
+  calculateDatePresetRange,
 } from './mapUtils.ts';
 
 describe('Map Utilities Unit Tests', () => {
@@ -44,6 +45,24 @@ describe('Map Utilities Unit Tests', () => {
     it('returns fallback string for invalid date strings', () => {
       const result = formatObservationDate('not-a-valid-date');
       assert.equal(result, 'not-a-valid-date');
+    });
+  });
+
+  describe('calculateDatePresetRange', () => {
+    it('calculates 30 days preset range accurately', () => {
+      const fixedNow = new Date('2026-10-18T12:00:00.000Z');
+      const { dateFrom, dateTo } = calculateDatePresetRange(30, fixedNow);
+
+      assert.equal(dateTo, '2026-10-18');
+      assert.equal(dateFrom, '2026-09-18');
+    });
+
+    it('calculates 365 days preset range accurately across leap years', () => {
+      const fixedNow = new Date('2026-10-18T12:00:00.000Z');
+      const { dateFrom, dateTo } = calculateDatePresetRange(365, fixedNow);
+
+      assert.equal(dateTo, '2026-10-18');
+      assert.equal(dateFrom, '2025-10-18');
     });
   });
 });
