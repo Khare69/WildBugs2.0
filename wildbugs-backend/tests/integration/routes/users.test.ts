@@ -73,6 +73,16 @@ describe('User Routes Integration Tests', () => {
     }
   });
 
+  it('GET /api/users/:id/badges executes badge query handler', async () => {
+    const res = await fetch(`${baseUrl}/api/users/00000000-0000-0000-0000-000000000000/badges`);
+    assert.ok([200, 503].includes(res.status), `Expected 200 or 503, got ${res.status}`);
+    if (res.status === 200) {
+      const body: any = await res.json();
+      assert.equal(body.status, 'success');
+      assert.ok(Array.isArray(body.data));
+    }
+  });
+
   it('GET /api/users/:id executes public profile handler', async () => {
     const res = await fetch(`${baseUrl}/api/users/00000000-0000-0000-0000-000000000000`);
     assert.ok([404, 503].includes(res.status), `Expected 404 or 503, got ${res.status}`);

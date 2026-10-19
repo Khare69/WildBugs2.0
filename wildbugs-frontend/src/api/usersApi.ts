@@ -4,6 +4,7 @@ import type {
   FieldJournalResponse,
   LeaderboardResponse,
   LeaderboardMetric,
+  UserBadgeItem,
 } from '../types/user';
 
 export const usersApi = {
@@ -48,6 +49,16 @@ export const usersApi = {
       {
         params: { metric, limit },
       }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Fetch all platform achievement badges annotated with user's earned status and progress
+   */
+  async getUserBadges(userId: string): Promise<UserBadgeItem[]> {
+    const response = await apiClient.get<{ status: string; data: UserBadgeItem[] }>(
+      `/users/${userId}/badges`
     );
     return response.data.data;
   },

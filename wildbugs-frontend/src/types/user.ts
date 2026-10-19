@@ -98,3 +98,28 @@ export interface LeaderboardResponse {
   rankings: LeaderboardEntry[];
   cached?: boolean;
 }
+
+export interface BadgeCriterion {
+  type: 'sightings_count' | 'unique_species' | 'verified_count' | 'streak_days' | 'time_window';
+  threshold?: number;
+  startHour?: number;
+  endHour?: number;
+}
+
+export interface BadgeProgress {
+  current: number;
+  max: number;
+  percentage: number;
+}
+
+export interface UserBadgeItem {
+  id: number;
+  name: string;
+  description: string;
+  iconUrl: string;
+  criteria?: BadgeCriterion;
+  earned: boolean;
+  earnedAt: string | null;
+  progress: BadgeProgress;
+}
+

@@ -27,6 +27,13 @@ router.get('/leaderboard', asyncHandler(userController.getLeaderboardHandler));
 router.get('/:id/journal', asyncHandler(userController.getJournalHandler));
 
 /**
+ * @route   GET /api/users/:id/badges
+ * @desc    Get all platform achievement badges annotated with user's progress and earned state
+ * @access  Public
+ */
+router.get('/:id/badges', asyncHandler(userController.getBadgesHandler));
+
+/**
  * @route   GET /api/users/:id
  * @desc    Get public profile and statistics for any user
  * @access  Public

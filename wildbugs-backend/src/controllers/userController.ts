@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import userService, { LeaderboardMetric } from '../services/userService';
+import badgeService from '../services/badgeService';
 import { UnauthorizedError, ValidationError } from '../utils/errors';
 
 export class UserController {
@@ -76,6 +77,24 @@ export class UserController {
     }
 
     const data = await userService.getLeaderboard(metricParam as LeaderboardMetric, limit);
+
+    res.status(200).json({
+      status: 'success',
+      data,
+    });
+  };
+
+  /**
+   * GET /api/users/:id/badges
+   * Retrieves all platform achievement badges annotated with user's earned status and criteria progress.
+   */
+  public getBadgesHandler = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      throw new ValidationError('A valid user ID is required');
+    }
+
+    const data = await badgeService.getUserBadges(id.trim());
 
     res.status(200).json({
       status: 'success',

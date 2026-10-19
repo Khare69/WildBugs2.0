@@ -1,7 +1,8 @@
 import env from './config/env';
 import app from './app';
-import { setupIdentificationWorker } from './jobs/queue';
+import { setupIdentificationWorker, setupBadgeWorker } from './jobs/queue';
 import { processIdentificationJob } from './jobs/identifyInsect.job';
+import { processBadgeJob } from './jobs/checkBadges.job';
 
 const PORT = env.PORT;
 
@@ -14,6 +15,9 @@ const server = app.listen(PORT, () => {
     try {
       setupIdentificationWorker(processIdentificationJob);
       console.log('[wildbugs-backend] Asynchronous AI vision identification worker initialized');
+
+      setupBadgeWorker(processBadgeJob);
+      console.log('[wildbugs-backend] Asynchronous badge evaluation worker initialized');
     } catch (err) {
       console.warn('[wildbugs-backend] Background worker initialization deferred:', err);
     }

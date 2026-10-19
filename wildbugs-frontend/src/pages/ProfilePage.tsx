@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import usersApi from '../api/usersApi';
 import StatsOverview from '../components/profile/StatsOverview';
 import StreakTracker from '../components/profile/StreakTracker';
+import BadgeGrid from '../components/profile/BadgeGrid';
 import FieldJournal from '../components/profile/FieldJournal';
 
 export const ProfilePage: React.FC = () => {
@@ -169,6 +170,9 @@ export const ProfilePage: React.FC = () => {
 
       {/* Discovery Metrics & Stats Overview Grid */}
       <StatsOverview stats={stats} />
+
+      {/* Interactive Badge Trophy Grid */}
+      <BadgeGrid userId={user.id} />
 
       {/* Chronological Field Journal Timeline */}
       <FieldJournal userId={user.id} isOwnProfile={isOwnProfile} />
