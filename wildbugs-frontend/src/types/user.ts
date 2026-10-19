@@ -88,6 +88,7 @@ export interface LeaderboardEntry {
   userId: string;
   displayName: string;
   avatarUrl: string | null;
+  role?: string;
   score: number;
   metric: LeaderboardMetric;
 }

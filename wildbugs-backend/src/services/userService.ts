@@ -41,6 +41,7 @@ export interface LeaderboardEntry {
   userId: string;
   displayName: string;
   avatarUrl: string | null;
+  role?: string;
   score: number;
   metric: LeaderboardMetric;
 }
@@ -406,6 +407,7 @@ export class UserService {
         id: true,
         displayName: true,
         avatarUrl: true,
+        role: true,
       },
     });
 
@@ -418,6 +420,7 @@ export class UserService {
         userId: item.userId,
         displayName: u?.displayName || 'Naturalist Observer',
         avatarUrl: u?.avatarUrl || null,
+        role: u?.role || 'USER',
         score: item.score,
         metric,
       };

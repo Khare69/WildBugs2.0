@@ -49,6 +49,12 @@ export const Navbar: React.FC = () => {
             🗺️ Biodiversity Map
           </NavLink>
           <NavLink
+            to="/leaderboard"
+            className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}
+          >
+            🏆 Leaderboard
+          </NavLink>
+          <NavLink
             to="/upload"
             className={({ isActive }) => `nav-link nav-link-upload ${isActive ? 'nav-link-active' : ''}`}
           >
@@ -125,6 +131,13 @@ export const Navbar: React.FC = () => {
             onClick={closeMenu}
           >
             🗺️ Biodiversity Map
+          </NavLink>
+          <NavLink
+            to="/leaderboard"
+            className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
+            onClick={closeMenu}
+          >
+            🏆 Leaderboard
           </NavLink>
           <NavLink
             to="/upload"
