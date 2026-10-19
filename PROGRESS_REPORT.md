@@ -13,7 +13,7 @@
 | **Phase 1** | Foundation (Scaffolding, DB, Auth, Species, Shell) | 1.1 – 1.5 | ✅ Completed | ✅ Passed (0 Bugs) | Yes | 2026-10-16 |
 | **Phase 2** | Core Upload Loop (Capture, Storage, AI Vision, Detail) | 2.1 – 2.4 | ✅ Completed | ✅ Passed (0 Bugs) | Yes | 2026-10-17 |
 | **Phase 3** | Biodiversity Map (PostGIS, Leaflet, Clustering, Heatmap) | 3.1 – 3.3 | ✅ Completed | ✅ Passed (0 Bugs) | Yes | 2026-10-18 |
-| **Phase 4** | Engagement & Gamification (Journal, Streaks, Badges, Challenges) | 4.1 – 4.4 | 🔄 In Progress (4.1 Done) | ⏳ Pending | No | 2026-10-19 |
+| **Phase 4** | Engagement & Gamification (Journal, Streaks, Badges, Challenges) | 4.1 – 4.4 | 🔄 In Progress (4.1 & 4.2 Done) | ⏳ Pending | No | 2026-10-19 |
 | **Phase 5** | Community (Discussion Forum, Verification, Notifications) | 5.1 – 5.3 | ⏳ Pending | ⏳ Pending | No | — |
 | **Phase 6** | Polish & Deploy (PWA, Caching, Docker, Production Hardening) | 6.1 – 6.3 | ⏳ Pending | ⏳ Pending | No | — |
 
@@ -577,12 +577,39 @@
   - `feat(profile-ui): build user profile stats dashboard and infinite-scroll field journal`
 
 #### Sub-Phase 4.2: Habit Tracking & Leaderboards
-- **Status**: ⏳ Pending
+- **Status**: ✅ Completed
 - **🛠️ Changes Performed**:
+  - **Redis-Cached Leaderboard & Role Enrichment (`wildbugs-backend/src/services/userService.ts`)**:
+    - Enriched `getLeaderboard` aggregation across 'sightings', 'species', and 'verified' metrics with observer role badges (`USER`, `EXPERT`, `ADMIN`).
+    - Configured automatic 15-minute TTL caching in Redis with key structure `wildbugs:leaderboard:${metric}:${limit}` and transparent fallback during Redis outages.
+  - **Interactive Leaderboard Table & Top 3 Podium (`wildbugs-frontend/src/components/leaderboard/LeaderboardTable.tsx`)**:
+    - Created metric switcher tab bar with custom icons (🔭 Most Sightings, 🐞 Most Species, 🛡️ Top Verifiers).
+    - Designed 3D-styled visual podium showcase for top 3 observers with gold 🥇 champion crown, silver 🥈 runner-up, and bronze 🥉 3rd-place cards.
+    - Added limit selector for Top 10, Top 25, and Top 50 naturalists.
+    - Added Redis cache freshness indicator badge (`⚡ Redis Cached (15m)` / `Live DB Sync`) with interactive manual refresh trigger.
+    - Implemented responsive table with rank medals, observer avatars, role chips, formatted score digits, and direct links to user field journals.
+  - **Dedicated Leaderboard Page & Global Highlights (`wildbugs-frontend/src/pages/LeaderboardPage.tsx`)**:
+    - Designed hero header with "Citizen Science Hall of Fame" badge, community metric ribbon (Open Science Registry, Redis Powered, AI & Expert Validation), and bottom CTA banner.
+  - **Navigation Integration (`App.tsx`, `Navbar.tsx`, `AppLayout.tsx`, `index.css`)**:
+    - Mounted `/leaderboard` route in `App.tsx`.
+    - Added "🏆 Leaderboard" navigation link in desktop navbar, mobile drawer, and platform footer links.
+    - Added dark-forest leaderboard and podium styles to `index.css`.
+  - **Leaderboard Logic Unit Tests (`wildbugs-frontend/src/components/leaderboard/LeaderboardLogic.test.ts`)**:
+    - Added unit test suite covering medal assignments (🥇, 🥈, 🥉, `#4`), metric labels, unit resolutions, podium participant extraction, and avatar initial fallbacks.
 - **🐛 Bugs Discovered**:
+  - None during Sub-Phase 4.2 implementation; zero compiler or runtime errors.
 - **🔧 Errors Resolved**:
+  - None required; clean implementation on top of Phase 4.1 backend abstractions.
 - **🔄 Methods Replaced / Refactored**:
+  - Enhanced `getLeaderboard` database query to join user role, enabling role badge visualization directly on the leaderboard table.
 - **📝 Verification Actions & Test Results**:
+  - **Backend Test Suite**: 61/61 tests passing across 17 test suites (100% pass rate).
+  - **Frontend Test Suite**: 43/43 tests passing across 13 test suites (100% pass rate, including 4 new leaderboard logic unit tests).
+  - **Frontend Linter**: `oxlint` 0 warnings and 0 errors across 61 files.
+  - **Frontend Production Build**: `tsc -b && vite build` bundled 219 modules in 1.25s with 0 errors.
+  - **Total Automated Full Stack Tests**: 104/104 tests passing cleanly with zero failures.
+- **💾 Git Commits**:
+  - `feat(leaderboard): build redis-cached leaderboard endpoint and tabbed ranking view`
 
 #### Sub-Phase 4.3: Automated Badge Engine
 - **Status**: ⏳ Pending
