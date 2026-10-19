@@ -13,7 +13,7 @@
 | **Phase 1** | Foundation (Scaffolding, DB, Auth, Species, Shell) | 1.1 – 1.5 | ✅ Completed | ✅ Passed (0 Bugs) | Yes | 2026-10-16 |
 | **Phase 2** | Core Upload Loop (Capture, Storage, AI Vision, Detail) | 2.1 – 2.4 | ✅ Completed | ✅ Passed (0 Bugs) | Yes | 2026-10-17 |
 | **Phase 3** | Biodiversity Map (PostGIS, Leaflet, Clustering, Heatmap) | 3.1 – 3.3 | ✅ Completed | ✅ Passed (0 Bugs) | Yes | 2026-10-18 |
-| **Phase 4** | Engagement & Gamification (Journal, Streaks, Badges, Challenges) | 4.1 – 4.4 | 🔄 In Progress (4.1 & 4.2 Done) | ⏳ Pending | No | 2026-10-19 |
+| **Phase 4** | Engagement & Gamification (Journal, Streaks, Badges, Challenges) | 4.1 – 4.4 | 🔄 In Progress (4.1, 4.2 & 4.3 Done) | ⏳ Pending | No | 2026-10-19 |
 | **Phase 5** | Community (Discussion Forum, Verification, Notifications) | 5.1 – 5.3 | ⏳ Pending | ⏳ Pending | No | — |
 | **Phase 6** | Polish & Deploy (PWA, Caching, Docker, Production Hardening) | 6.1 – 6.3 | ⏳ Pending | ⏳ Pending | No | — |
 
@@ -612,12 +612,48 @@
   - `feat(leaderboard): build redis-cached leaderboard endpoint and tabbed ranking view`
 
 #### Sub-Phase 4.3: Automated Badge Engine
-- **Status**: ⏳ Pending
+- **Status**: ✅ Completed
 - **🛠️ Changes Performed**:
+  - **Milestone Criteria Evaluation & Default Badge Seed (`wildbugs-backend/src/services/badgeService.ts`)**:
+    - Created catalogue of default platform achievement badges (`First Sighting`, `Biodiversity Explorer`, `Century Club`, `Night Owl`, `Early Bird`, `Week Warrior`, `Master Verifier`).
+    - Implemented pure criteria evaluator `evaluateBadgeCriterion` handling 5 metric modes: `sightings_count`, `unique_species`, `verified_count`, `streak_days`, and intra-day or midnight-crossing `time_window`.
+    - Implemented `seedDefaultBadges()`, `evaluateBadges(userId)` with dynamic metric aggregation, and `getUserBadges(userId)` computing current progress, target threshold, and percentage completion.
+  - **Asynchronous BullMQ Worker & Trigger Pipeline (`queue.ts`, `checkBadges.job.ts`, `sightingService.ts`, `server.ts`)**:
+    - Configured `badgeQueue` and `setupBadgeWorker` with separate Redis connections, exponential backoff retries, and job retention policies.
+    - Implemented background processor `processBadgeJob` in `src/jobs/checkBadges.job.ts`.
+    - Wired automatic evaluation trigger `await addBadgeCheckJob(userId)` into `sightingService.create` upon new sighting registration.
+    - Initialized worker in `server.ts` alongside AI classification worker during non-test runtimes.
+  - **Badge Query API Endpoint (`wildbugs-backend/src/controllers/userController.ts`, `userRoutes.ts`)**:
+    - Implemented `GET /api/users/:id/badges` delivering all platform badges annotated with user earned status, earned timestamp, and live criteria progress metrics.
+  - **Interactive Trophy Showcase Grid (`wildbugs-frontend/src/components/profile/BadgeGrid.tsx`, `badgeUtils.ts`)**:
+    - Created responsive trophy room component featuring unlocked glowing medallions, lock overlays, progress bars, filter tabs (All, Unlocked, In Progress), and completion progress ribbon.
+    - Implemented full interactive achievement detail modal displaying badge requirement breakdowns and unlock history.
+    - Embedded `<BadgeGrid userId={user.id} />` into `ProfilePage.tsx` between stats metrics and the field journal timeline.
+    - Added dark-forest badge and medallion styling to `index.css`.
+  - **Unit & Integration Test Suites**:
+    - Added unit test suite in `wildbugs-backend/tests/unit/services/badgeService.test.ts` verifying all 5 criteria types and fallback behavior (7 tests).
+    - Added queue unit tests in `wildbugs-backend/tests/unit/jobs/queue.test.ts` for `badgeQueue` and `closeQueues`.
+    - Added integration test in `wildbugs-backend/tests/integration/routes/users.test.ts` for `GET /api/users/:id/badges`.
+    - Added frontend unit test suite in `wildbugs-frontend/src/components/profile/BadgeGridLogic.test.ts` covering badge summary calculation, tab filtering, date formatting, and criteria progress hint resolution (4 tests).
 - **🐛 Bugs Discovered**:
+  - `tests/unit/jobs/queue.test.ts` threw module export error when `closeIdentificationQueue` was refactored into `closeQueues`.
+  - `wildbugs-frontend/src/api/client.ts` threw `TypeError: Cannot read properties of undefined (reading 'VITE_API_URL')` when running unit tests under Node's experimental TypeScript runner.
+  - Node `--experimental-strip-types` runner could not parse `.tsx` JSX files imported into unit test suites.
 - **🔧 Errors Resolved**:
+  - Exported backwards-compatible alias `export const closeIdentificationQueue = closeQueues` in `queue.ts`.
+  - Updated `client.ts` to use optional chaining `import.meta.env?.VITE_API_URL` to gracefully fallback in Node.js test environments.
+  - Extracted pure calculation and formatting helpers into `wildbugs-frontend/src/components/profile/badgeUtils.ts` (`.ts` with 0 JSX), enabling headless unit test execution.
 - **🔄 Methods Replaced / Refactored**:
+  - Decoupled pure badge progress and formatting utilities from React JSX into `badgeUtils.ts` for 100% test isolation.
 - **📝 Verification Actions & Test Results**:
+  - **Backend Test Suite**: 70/70 passing across 18 test suites (100% pass rate, including 7 badge evaluation unit tests and route integration test).
+  - **Frontend Test Suite**: 47/47 passing across 14 test suites (100% pass rate, including 4 new badge grid logic unit tests).
+  - **Frontend Linter**: `oxlint` 0 warnings and 0 errors across 64 files.
+  - **Frontend Production Build**: `tsc -b && vite build` bundled 221 modules in 735ms with 0 errors.
+  - **Backend Production Build**: `tsc` compiled cleanly with 0 type errors.
+  - **Total Automated Full Stack Tests**: 117/117 passing cleanly (100% green).
+- **💾 Git Commits**:
+  - `feat(badges): implement badge evaluation rules, async award worker, and badge trophy grid`
 
 #### Sub-Phase 4.4: Seasonal Challenges
 - **Status**: ⏳ Pending
