@@ -7,6 +7,7 @@ import SpeciesDetailPage from './pages/SpeciesDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AccountPage from './pages/AccountPage';
+import ProfilePage from './pages/ProfilePage';
 import UploadPage from './pages/UploadPage';
 import SightingDetailPage from './pages/SightingDetailPage';
 import MapPage from './pages/MapPage';
@@ -33,6 +34,16 @@ export const App: React.FC = () => {
           <Route path="/sightings/:id" element={<SightingDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/profile/:id" element={<ProfilePage />} />
+          <Route path="/users/:id" element={<ProfilePage />} />
           <Route
             path="/account"
             element={

@@ -87,16 +87,21 @@ export const AccountPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Phase 2 Feature Preview */}
+      {/* Field Journal & Profile Access */}
       <section className="account-preview-box">
         <div className="account-preview-header">
-          <span style={{ fontSize: '1.5rem' }}>📸</span>
-          <h3>Citizen Science Observer Toolkit</h3>
+          <span style={{ fontSize: '1.5rem' }}>📖</span>
+          <h3>Field Journal & Habit Tracker</h3>
         </div>
         <p className="account-preview-text">
-          Phase 2 Core Upload Loop will enable direct camera photo capture, client-side canvas compression,
-          Cloudinary image ingestion, and automated Google Cloud Vision AI insect identification.
+          Access your comprehensive biodiversity field journal, view consecutive-day observation streaks,
+          and explore your identification accuracy ratings.
         </p>
+        <div style={{ marginTop: '12px' }}>
+          <Link to="/profile" className="btn-primary" style={{ textDecoration: 'none' }}>
+            📖 View Field Journal & Profile →
+          </Link>
+        </div>
       </section>
 
       {/* Actions */}

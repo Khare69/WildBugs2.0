@@ -60,7 +60,7 @@ export const Navbar: React.FC = () => {
         <div className="navbar-auth-section">
           {isAuthenticated && user ? (
             <div className="user-profile-badge">
-              <Link to="/account" className="user-profile-link" title="View observer account and stats" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+              <Link to="/profile" className="user-profile-link" title="View observer profile and field journal" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
                 <span className="user-avatar-circle">
                   {user.displayName.charAt(0).toUpperCase()}
                 </span>
@@ -137,7 +137,7 @@ export const Navbar: React.FC = () => {
           <div className="mobile-drawer-auth">
             {isAuthenticated && user ? (
               <div className="mobile-user-box">
-                <Link to="/account" onClick={closeMenu} style={{ textDecoration: 'none' }}>
+                <Link to="/profile" onClick={closeMenu} style={{ textDecoration: 'none' }}>
                   <p className="mobile-user-greeting">Signed in as <strong>{user.displayName}</strong> 👤</p>
                 </Link>
                 <button type="button" className="btn-logout mobile-full-btn" onClick={handleLogout}>

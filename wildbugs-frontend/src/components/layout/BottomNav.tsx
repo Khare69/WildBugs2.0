@@ -33,11 +33,11 @@ export const BottomNav: React.FC = () => {
       </NavLink>
 
       <NavLink
-        to={isAuthenticated ? '/account' : '/login'}
+        to={isAuthenticated ? '/profile' : '/login'}
         className={({ isActive }) => `bottom-nav-item ${isActive ? 'bottom-nav-active' : ''}`}
       >
         <span className="bottom-nav-icon">{isAuthenticated ? '👤' : '🔑'}</span>
-        <span className="bottom-nav-label">{isAuthenticated ? 'Account' : 'Sign In'}</span>
+        <span className="bottom-nav-label">{isAuthenticated ? 'Profile' : 'Sign In'}</span>
       </NavLink>
     </nav>
   );
