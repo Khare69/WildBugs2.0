@@ -13,7 +13,7 @@
 | **Phase 1** | Foundation (Scaffolding, DB, Auth, Species, Shell) | 1.1 – 1.5 | ✅ Completed | ✅ Passed (0 Bugs) | Yes | 2026-10-16 |
 | **Phase 2** | Core Upload Loop (Capture, Storage, AI Vision, Detail) | 2.1 – 2.4 | ✅ Completed | ✅ Passed (0 Bugs) | Yes | 2026-10-17 |
 | **Phase 3** | Biodiversity Map (PostGIS, Leaflet, Clustering, Heatmap) | 3.1 – 3.3 | ✅ Completed | ✅ Passed (0 Bugs) | Yes | 2026-10-18 |
-| **Phase 4** | Engagement & Gamification (Journal, Streaks, Badges, Challenges) | 4.1 – 4.4 | ⏳ Pending | ⏳ Pending | No | — |
+| **Phase 4** | Engagement & Gamification (Journal, Streaks, Badges, Challenges) | 4.1 – 4.4 | 🔄 In Progress (4.1 Done) | ⏳ Pending | No | 2026-10-19 |
 | **Phase 5** | Community (Discussion Forum, Verification, Notifications) | 5.1 – 5.3 | ⏳ Pending | ⏳ Pending | No | — |
 | **Phase 6** | Polish & Deploy (PWA, Caching, Docker, Production Hardening) | 6.1 – 6.3 | ⏳ Pending | ⏳ Pending | No | — |
 
@@ -533,12 +533,48 @@
 ### 🏆 Phase 4 — Engagement & Gamification
 
 #### Sub-Phase 4.1: User Profile & Field Journal
-- **Status**: ⏳ Pending
+- **Status**: ✅ Completed
 - **🛠️ Changes Performed**:
+  - **User & Profile Backend Service (`wildbugs-backend/src/services/userService.ts`)**:
+    - Built `UserService` aggregating total sightings count, distinct species count, verified sightings count, and accuracy percentage (`verified / total * 100`).
+    - Implemented calendar day streak calculation engine (`calculateObservationStreaks`) computing active daily streak, longest streak, and a 7-day activity window (`last7Days`).
+    - Implemented paginated chronological field journal query (`getJournal`) with species metadata, identification suggestions, and pagination meta (`page`, `limit`, `total`, `totalPages`, `hasMore`).
+    - Implemented Redis-cached platform leaderboard (`getLeaderboard`) with 15-minute TTL across 'sightings', 'species', and 'verified' metrics with graceful degradation.
+  - **User Controllers & Routes (`wildbugs-backend/src/controllers/userController.ts`, `wildbugs-backend/src/routes/userRoutes.ts`)**:
+    - Created controller handlers for `getMyProfileHandler`, `getPublicProfileHandler`, `getJournalHandler`, and `getLeaderboardHandler`.
+    - Mounted `/api/users/me` (protected with `authenticate`), `/api/users/leaderboard`, `/api/users/:id/journal`, and `/api/users/:id` in `app.ts`.
+    - Guarded against param shadowing by mounting `/leaderboard` prior to `/:id`.
+  - **User Profile API Client & Types (`wildbugs-frontend/src/api/usersApi.ts`, `wildbugs-frontend/src/types/user.ts`)**:
+    - Created typed API client methods: `getMyProfile`, `getUserProfile`, `getFieldJournal`, and `getLeaderboard`.
+    - Defined TypeScript interfaces for `UserProfile`, `UserStats`, `JournalSighting`, `JournalSpecies`, `StreakDay`, and `LeaderboardEntry`.
+  - **Profile & Field Journal UI Components (`wildbugs-frontend/src/components/profile/`)**:
+    - Built `StatsOverview.tsx`: 6 glassmorphic stat cards with metric values, custom glow accents, and responsive layout.
+    - Built `StreakTracker.tsx`: Visual flame badge and 7-day activity dot timeline with active green checks, today's pulsing reminder, and all-time record tracker.
+    - Built `FieldJournal.tsx`: Sighting cards timeline with photo zoom, verification status badges (`VERIFIED`, `IDENTIFIED`, `PENDING`, `REJECTED`), AI confidence chips, taxonomic chips, coordinate links to `/map`, and TanStack Query `useInfiniteQuery` infinite scrolling with "Load More" pagination.
+    - Built `ProfilePage.tsx`: Naturalist hero header with avatar initial, role chip, veteran badge, joined date, action buttons, and integrated streak tracker, stats grid, and field journal.
+  - **Navigation & Routing Integration (`App.tsx`, `Navbar.tsx`, `BottomNav.tsx`, `AccountPage.tsx`, `index.css`)**:
+    - Registered `/profile` (protected), `/profile/:id`, and `/users/:id` routes in `App.tsx`.
+    - Updated navigation bars to link authenticated users directly to `/profile`.
+    - Added dedicated CSS styles for profile hero, streak tracker, stats cards, journal timeline, and loading skeletons.
 - **🐛 Bugs Discovered**:
+  - `oxlint` detected impure function call `new Date()` within render in `StreakTracker.tsx` and unused `isAuthenticated` variable in `ProfilePage.tsx`.
+  - `tsc -b` detected `verbatimModuleSyntax` errors for non-type imports in `usersApi.ts`, `FieldJournal.tsx`, `StatsOverview.tsx`, and `StreakTracker.tsx`.
+  - Integration test for `GET /api/users/:id` expected 500 when offline DB threw `PrismaClientInitializationError` (which properly yields status 503).
 - **🔧 Errors Resolved**:
+  - Derived `todayFormatted` purely from `last7Days[last7Days.length - 1]?.date` in `StreakTracker.tsx`, eliminating impure render calls.
+  - Converted type imports to `import type { ... }` across all frontend files, satisfying `verbatimModuleSyntax`.
+  - Corrected test assertions in `users.test.ts` to expect status `[404, 503]`, passing with 100% success rate.
 - **🔄 Methods Replaced / Refactored**:
+  - Replaced ad-hoc stats calculation with centralized `calculateObservationStreaks` and database group-by aggregations.
+  - Refactored `AccountPage.tsx` preview section into a direct link to the dynamic `ProfilePage` and `FieldJournal`.
 - **📝 Verification Actions & Test Results**:
+  - **Backend Test Suite**: 61/61 passing across 17 test suites (100% pass rate, including 6 new streak calculation unit tests and 5 new user route integration tests).
+  - **Frontend Test Suite**: 39/39 passing across 12 test suites (100% pass rate, including 4 new profile & journal unit tests).
+  - **Frontend Linter**: `oxlint` 0 warnings and 0 errors across 58 files.
+  - **Frontend Production Build**: `tsc -b && vite build` bundled 217 modules in 1.78s with 0 errors.
+- **💾 Git Commits**:
+  - `feat(user-api): implement user stats, paginated field journal, and redis-cached leaderboard`
+  - `feat(profile-ui): build user profile stats dashboard and infinite-scroll field journal`
 
 #### Sub-Phase 4.2: Habit Tracking & Leaderboards
 - **Status**: ⏳ Pending
