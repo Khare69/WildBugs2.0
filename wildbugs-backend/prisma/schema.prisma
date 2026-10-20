@@ -36,9 +36,10 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  sightings       Sighting[]
-  identifications Identification[]
-  userBadges      UserBadge[]
+  sightings         Sighting[]
+  identifications   Identification[]
+  userBadges        UserBadge[]
+  challengeProgress ChallengeProgress[]
 
   @@map("users")
 }
@@ -129,3 +130,43 @@ model UserBadge {
   @@id([userId, badgeId])
   @@map("user_badges")
 }
+
+enum ChallengeScope {
+  INDIVIDUAL
+  TEAM
+}
+
+model Challenge {
+  id          Int            @id @default(autoincrement())
+  title       String
+  description String
+  criteria    Json
+  startsAt    DateTime
+  endsAt      DateTime
+  scope       ChallengeScope @default(INDIVIDUAL)
+  createdAt   DateTime       @default(now())
+
+  progress ChallengeProgress[]
+
+  @@map("challenges")
+}
+
+model ChallengeProgress {
+  id          String    @id @default(uuid())
+  challengeId Int
+  userId      String
+  progress    Int       @default(0)
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  joinedAt    DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([challengeId, userId])
+  @@index([userId])
+  @@index([challengeId])
+  @@map("challenge_progress")
+}
+
