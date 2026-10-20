@@ -131,4 +131,105 @@ describe('Sightings Routes Integration Tests', () => {
     const body: any = await res.json();
     assert.equal(body.status, 'fail');
   });
+
+  it('PUT /api/sightings/:id/verify returns 401 when unauthenticated', async () => {
+    const res = await fetch(`${baseUrl}/api/sightings/sighting-uuid-1/verify`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ speciesId: 1 }),
+    });
+
+    assert.equal(res.status, 401);
+    const body: any = await res.json();
+    assert.equal(body.status, 'fail');
+    assert.match(body.message, /Authentication required/i);
+  });
+
+  it('PUT /api/sightings/:id/verify returns 403 when caller is regular USER', async () => {
+    const res = await fetch(`${baseUrl}/api/sightings/sighting-uuid-1/verify`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${validToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ speciesId: 1 }),
+    });
+
+    assert.equal(res.status, 403);
+    const body: any = await res.json();
+    assert.equal(body.status, 'fail');
+    assert.match(body.message, /not authorized/i);
+  });
+
+  it('PUT /api/sightings/:id/reject returns 401 when unauthenticated', async () => {
+    const res = await fetch(`${baseUrl}/api/sightings/sighting-uuid-1/reject`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason: 'Unclear photo' }),
+    });
+
+    assert.equal(res.status, 401);
+    const body: any = await res.json();
+    assert.equal(body.status, 'fail');
+  });
+
+  it('PUT /api/sightings/:id/reject returns 403 when caller is regular USER', async () => {
+    const res = await fetch(`${baseUrl}/api/sightings/sighting-uuid-1/reject`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${validToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ reason: 'Not an insect' }),
+    });
+
+    assert.equal(res.status, 403);
+    const body: any = await res.json();
+    assert.equal(body.status, 'fail');
+    assert.match(body.message, /not authorized/i);
+  });
+
+  it('PUT /api/sightings/:id/verify allows EXPERT role and reaches service layer', async () => {
+    const expertToken = authService.generateToken({
+      id: 'test-expert-uuid-999',
+      email: 'taxonomist@wildbugs.org',
+      role: Role.EXPERT,
+    });
+
+    const res = await fetch(`${baseUrl}/api/sightings/00000000-0000-0000-0000-000000000000/verify`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${expertToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ speciesId: 1 }),
+    });
+
+    assert.ok(
+      [404, 503].includes(res.status),
+      `Expected 404 (not found) or 503 (offline DB), got ${res.status}`
+    );
+  });
+
+  it('PUT /api/sightings/:id/reject allows ADMIN role and reaches service layer', async () => {
+    const adminToken = authService.generateToken({
+      id: 'test-admin-uuid-888',
+      email: 'admin@wildbugs.org',
+      role: Role.ADMIN,
+    });
+
+    const res = await fetch(`${baseUrl}/api/sightings/00000000-0000-0000-0000-000000000000/reject`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ reason: 'Blurry photo' }),
+    });
+
+    assert.ok(
+      [404, 503].includes(res.status),
+      `Expected 404 (not found) or 503 (offline DB), got ${res.status}`
+    );
+  });
 });

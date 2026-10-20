@@ -203,6 +203,186 @@ export class SightingService {
       },
     });
   }
+
+  /**
+   * Verifies a sighting observation as an expert or administrator.
+   * Updates status to VERIFIED, links confirmed species, records expert identification,
+   * triggers badge re-evaluations, and issues a user notification.
+   */
+  public async verifySighting(
+    sightingId: string,
+    expertUserId: string,
+    speciesId?: number,
+    notes?: string
+  ) {
+    const sighting = await prisma.sighting.findUnique({
+      where: { id: sightingId },
+      include: { species: true },
+    });
+
+    if (!sighting) {
+      throw new NotFoundError(`Sighting observation with ID '${sightingId}' was not found`);
+    }
+
+    let targetSpeciesId = sighting.speciesId;
+    if (speciesId !== undefined && speciesId !== null) {
+      const targetSpecies = await prisma.species.findUnique({
+        where: { id: speciesId },
+        select: { id: true, commonName: true },
+      });
+      if (!targetSpecies) {
+        throw new ValidationError(`Species with ID '${speciesId}' does not exist.`);
+      }
+      targetSpeciesId = targetSpecies.id;
+    }
+
+    if (!targetSpeciesId) {
+      throw new ValidationError(
+        'Cannot verify a sighting observation without a confirmed species classification.'
+      );
+    }
+
+    // 1. Mark existing identifications as non-accepted
+    await prisma.identification.updateMany({
+      where: { sightingId },
+      data: { isAccepted: false },
+    });
+
+    // 2. Insert new verified Expert identification record
+    await prisma.identification.create({
+      data: {
+        sightingId,
+        userId: expertUserId,
+        speciesId: targetSpeciesId,
+        source: 'EXPERT',
+        confidence: 1.0,
+        isAccepted: true,
+      },
+    });
+
+    // 3. Update sighting status and species
+    const updated = await prisma.sighting.update({
+      where: { id: sightingId },
+      data: {
+        status: 'VERIFIED',
+        speciesId: targetSpeciesId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            displayName: true,
+            avatarUrl: true,
+            role: true,
+          },
+        },
+        species: true,
+        identifications: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                displayName: true,
+                role: true,
+              },
+            },
+            species: {
+              select: {
+                id: true,
+                commonName: true,
+                scientificName: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    // 4. Enqueue badge check job for observer (e.g. verified sighting badges)
+    await addBadgeCheckJob(sighting.userId);
+
+    // 5. Notify the observer
+    try {
+      await prisma.notification.create({
+        data: {
+          userId: sighting.userId,
+          type: 'VERIFICATION',
+          message: notes
+            ? `Your insect sighting was verified by an expert! Note: ${notes}`
+            : 'Your insect sighting was verified by an expert!',
+          data: {
+            sightingId: sighting.id,
+            status: 'VERIFIED',
+            speciesId: targetSpeciesId,
+            expertId: expertUserId,
+          },
+        },
+      });
+    } catch {
+      // Ignore notification creation errors if non-critical
+    }
+
+    return updated;
+  }
+
+  /**
+   * Rejects an inaccurate or unidentifiable sighting observation.
+   */
+  public async rejectSighting(
+    sightingId: string,
+    expertUserId: string,
+    reason?: string
+  ) {
+    const sighting = await prisma.sighting.findUnique({
+      where: { id: sightingId },
+    });
+
+    if (!sighting) {
+      throw new NotFoundError(`Sighting observation with ID '${sightingId}' was not found`);
+    }
+
+    const updated = await prisma.sighting.update({
+      where: { id: sightingId },
+      data: {
+        status: 'REJECTED',
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            displayName: true,
+            avatarUrl: true,
+            role: true,
+          },
+        },
+        species: true,
+      },
+    });
+
+    // Notify the observer
+    try {
+      await prisma.notification.create({
+        data: {
+          userId: sighting.userId,
+          type: 'REJECTION',
+          message: reason
+            ? `Your sighting was reviewed by an expert: ${reason}`
+            : 'Your sighting was reviewed and marked as rejected by an expert.',
+          data: {
+            sightingId: sighting.id,
+            status: 'REJECTED',
+            reason: reason || null,
+            expertId: expertUserId,
+          },
+        },
+      });
+    } catch {
+      // Ignore notification creation errors if non-critical
+    }
+
+    return updated;
+  }
 }
 
 export const sightingService = new SightingService();

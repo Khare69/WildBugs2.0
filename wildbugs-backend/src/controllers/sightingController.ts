@@ -20,6 +20,15 @@ const createSightingSchema = z.object({
   observedAt: z.string().optional(),
 });
 
+const verifySightingSchema = z.object({
+  speciesId: z.coerce.number().int().positive().optional(),
+  notes: z.string().max(500, 'Verification notes cannot exceed 500 characters').optional(),
+});
+
+const rejectSightingSchema = z.object({
+  reason: z.string().max(500, 'Rejection reason cannot exceed 500 characters').optional(),
+});
+
 export class SightingController {
   /**
    * POST /api/sightings
@@ -103,6 +112,61 @@ export class SightingController {
     res.status(200).json({
       status: 'success',
       data: { sightings },
+    });
+  };
+
+  /**
+   * PUT /api/sightings/:id/verify
+   * Allows credentialed experts and administrators to verify an observation.
+   */
+  public verifyHandler = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      throw new ValidationError('A valid sighting ID is required');
+    }
+
+    const expertUserId = req.user?.userId || req.user?.id;
+    if (!expertUserId) {
+      throw new UnauthorizedError('Authentication required');
+    }
+
+    const parsed = verifySightingSchema.parse(req.body);
+
+    const sighting = await sightingService.verifySighting(
+      id,
+      expertUserId,
+      parsed.speciesId,
+      parsed.notes
+    );
+
+    res.status(200).json({
+      status: 'success',
+      data: { sighting },
+    });
+  };
+
+  /**
+   * PUT /api/sightings/:id/reject
+   * Allows credentialed experts and administrators to reject an observation.
+   */
+  public rejectHandler = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      throw new ValidationError('A valid sighting ID is required');
+    }
+
+    const expertUserId = req.user?.userId || req.user?.id;
+    if (!expertUserId) {
+      throw new UnauthorizedError('Authentication required');
+    }
+
+    const parsed = rejectSightingSchema.parse(req.body);
+
+    const sighting = await sightingService.rejectSighting(id, expertUserId, parsed.reason);
+
+    res.status(200).json({
+      status: 'success',
+      data: { sighting },
     });
   };
 }

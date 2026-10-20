@@ -1,6 +1,8 @@
 import { Router } from 'express';
+import { Role } from '@prisma/client';
 import sightingController from '../controllers/sightingController';
 import { authenticate } from '../middleware/authenticate';
+import { authorize } from '../middleware/authorize';
 import { uploadSinglePhoto } from '../middleware/upload';
 import { asyncHandler } from '../middleware/errorHandler';
 
@@ -27,6 +29,30 @@ router.get(
   '/me',
   authenticate,
   asyncHandler(sightingController.getMySightingsHandler)
+);
+
+/**
+ * @route   PUT /api/sightings/:id/verify
+ * @desc    Verify sighting as an expert or administrator
+ * @access  Protected (EXPERT or ADMIN role)
+ */
+router.put(
+  '/:id/verify',
+  authenticate,
+  authorize(Role.EXPERT, Role.ADMIN),
+  asyncHandler(sightingController.verifyHandler)
+);
+
+/**
+ * @route   PUT /api/sightings/:id/reject
+ * @desc    Reject sighting observation
+ * @access  Protected (EXPERT or ADMIN role)
+ */
+router.put(
+  '/:id/reject',
+  authenticate,
+  authorize(Role.EXPERT, Role.ADMIN),
+  asyncHandler(sightingController.rejectHandler)
 );
 
 /**
