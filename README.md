@@ -37,7 +37,63 @@
 | **Phase 3** | **Biodiversity Map** | ✅ Completed | PostGIS spatial queries, interactive Leaflet map, clustering, density heatmap |
 | **Phase 4** | **Engagement & Gamification** | ✅ Completed | User profiles, field journal, streak engine, automated badges, seasonal challenges |
 | **Phase 5** | **Community & Moderation** | ✅ Completed | Forum threads, expert verification system, notification bell with polling |
-| **Phase 6** | **Polish, Hardening & Deployment** | ⏳ Upcoming | PWA offline sync, Redis caching, rate limiting, Docker containerization, health probes |
+| **Phase 6** | **Polish, Hardening & Deployment** | ✅ Completed | PWA offline sync, Redis caching, rate limiting, Docker containerization, health probes |
+
+---
+
+## 🚀 Phase 6 Features & Architecture: Polish, Hardening & Deployment
+
+### 1. Progressive Web App (PWA) & Offline Sync
+- **Service Worker & Precaching (`vite-plugin-pwa`)**:
+  - Automatically installs and registers service worker with `autoUpdate` lifecycle.
+  - Precaches all application shell assets, static HTML, CSS bundles, vector graphics, and Webpack/Vite chunks (`dist/sw.js`).
+  - Runtime caching rules:
+    - **API Routes**: `NetworkFirst` strategy with 10-second timeout, falling back gracefully to cached responses when in remote field areas without signal.
+    - **Cloudinary Imagery**: `CacheFirst` strategy with 30-day expiration and LRU cache rotation.
+- **IndexedDB Observation Queue (`useOfflineQueue`)**:
+  - Offline field observations (photo binary blobs, precise GPS coordinates, observation timestamp, notes) are stored in client-side IndexedDB via `idb-keyval`.
+  - Transparent in-memory fallback for environments with restricted browser storage.
+  - Automatic reconnection listener (`window.addEventListener('online')`) detects signal recovery and automatically processes queued uploads in the background.
+  - UI status indicators display queue size and notify the observer when records are safely pending or completed.
+
+### 2. High-Performance Redis Caching & Write Invalidation
+- **Centralized Cache Manager (`cacheService.ts`)**:
+  - Standardized Redis key management with JSON serialization and configurable TTLs.
+  - Seamless memory degradation: if Redis is disconnected or rebooting, the backend automatically falls back to an internal in-memory store without failing requests.
+  - Pattern-based wildcard cache invalidation (`delPattern`) using Redis `SCAN`.
+- **Cached Layers**:
+  - `speciesService.ts`: Species catalog and species details cached for **1 hour** (3600s).
+  - `userService.ts`: Global leaderboard rankings cached for **15 minutes** (900s).
+  - `mapService.ts`: Geospatial sightings GeoJSON and heatmaps cached for **5 minutes** (300s).
+  - `sightingService.ts`: Creates write invalidation hooks clearing `map:*`, `leaderboard:*`, and `stats:*` upon successful observation uploads.
+
+### 3. Tiered Security Rate Limiting & User Feedback
+- **DDoS & Abuse Protection (`rateLimiter.ts`)**:
+  - **General API Limiter**: 100 requests per minute per IP across all `/api` routes.
+  - **Authentication Limiter**: 5 login/registration attempts per 15 minutes per IP (mitigates brute-force attacks).
+  - **Upload Limiter**: 20 observations per hour per authenticated user account (prevents spam uploads and API quota exhaustion).
+- **Global Toast Notification Container (`Toast.tsx`)**:
+  - Non-blocking slide-in notifications with auto-dismiss after 5 seconds.
+  - Semantic variants: `success` (emerald), `error` (rose), `warning` (amber), `info` (cyan).
+  - Wired into Axios response interceptors (`client.ts`) to inform observers when rate limits are approached (429) or sessions expire (401).
+
+### 4. Production Containerization & Orchestration
+- **Multi-Stage Dockerfile (`wildbugs-backend/Dockerfile`)**:
+  - **Builder Stage**: Installs dependencies, generates Prisma client models, and compiles TypeScript into lean `dist/`.
+  - **Runner Stage**: Minimal Node.js 20 Alpine image containing only production dependencies and compiled JavaScript.
+  - Hardened with a non-root system user (`wildbugs:nodejs`, UID 10001) adhering to container security best practices.
+  - Embedded container `HEALTHCHECK` probing `/api/health`.
+- **Docker Compose Topology (`docker-compose.yml`)**:
+  - Orchestrates 3 production services on isolated bridge network `wildbugs-network`:
+    1. `postgres`: PostgreSQL 15 with PostGIS spatial extension (`postgis/postgis:15-3.3-alpine`) and healthcheck.
+    2. `redis`: Redis 7 Alpine (`redis:7-alpine`) with healthcheck and persistent cache volume.
+    3. `backend`: WildBugs backend API built from multi-stage Dockerfile, gated on PostgreSQL and Redis readiness.
+- **Deep Health Check Probe (`GET /api/health`)**:
+  - Probes live PostgreSQL database connectivity (`SELECT 1`) and Redis cache connection (`ping()`).
+  - Returns HTTP 200 with `{ status: 'healthy', db: true, redis: true, service: 'wildbugs-api', timestamp: '...' }` when operational, or HTTP 503 degraded when a dependency is unreachable.
+- **SPA Deployment Configurations**:
+  - `wildbugs-frontend/vercel.json`: Vercel SPA rewrite rule (`/(.*)` -> `/index.html`) with immutable asset caching.
+  - `wildbugs-frontend/public/_redirects`: Static fallback rewrite (`/* /index.html 200`) for Netlify and Cloudflare Pages.
 
 ---
 
@@ -298,6 +354,52 @@ npm run lint
 npm run dev
 # The UI will be live at http://localhost:5173
 ```
+
+### 4. Docker Compose Production Quickstart
+Spin up the complete multi-container stack (PostgreSQL with PostGIS, Redis, and WildBugs API) with a single command:
+
+```bash
+# Build and launch all services in detached mode
+docker-compose up --build -d
+
+# Check container health and status
+docker-compose ps
+
+# Verify API and dependency health
+curl http://localhost:3001/api/health
+```
+
+### 5. Running the Full Automated Test Suite
+```bash
+# Backend test suite (116 tests across 26 suites)
+cd wildbugs-backend && npm test
+
+# Frontend test suite (70 tests across 20 suites)
+cd ../wildbugs-frontend && npm test
+```
+
+---
+
+## 🔐 Environment Variables Matrix
+
+### Backend (`wildbugs-backend/.env`)
+| Variable | Required | Default | Description |
+|---|:---:|---|---|
+| `PORT` | No | `3001` | HTTP server listening port |
+| `NODE_ENV` | No | `development` | Environment mode (`development`, `test`, `production`) |
+| `DATABASE_URL` | **Yes** | — | PostgreSQL PostGIS connection string |
+| `JWT_SECRET` | **Yes** | — | Min 16-character cryptographic signing secret |
+| `JWT_EXPIRES_IN` | No | `7d` | JSON Web Token lifespan |
+| `CORS_ORIGIN` | No | `*` | Allowed CORS origins (comma-separated or `*`) |
+| `REDIS_URL` | No | `redis://localhost:6379` | Redis connection URI for caching and job queues |
+| `CLOUDINARY_CLOUD_NAME` | No | `""` | Cloudinary cloud identifier |
+| `CLOUDINARY_API_KEY` | No | `""` | Cloudinary API access key |
+| `CLOUDINARY_API_SECRET` | No | `""` | Cloudinary API secret |
+
+### Frontend (`wildbugs-frontend/.env`)
+| Variable | Required | Default | Description |
+|---|:---:|---|---|
+| `VITE_API_URL` | No | `http://localhost:3001` | Base URL for backend API requests |
 
 ---
 
