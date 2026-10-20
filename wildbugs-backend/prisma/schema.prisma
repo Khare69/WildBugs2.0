@@ -40,6 +40,8 @@ model User {
   identifications   Identification[]
   userBadges        UserBadge[]
   challengeProgress ChallengeProgress[]
+  forumPosts        ForumPost[]
+  notifications     Notification[]
 
   @@map("users")
 }
@@ -59,6 +61,7 @@ model Species {
 
   sightings       Sighting[]
   identifications Identification[]
+  forumPosts      ForumPost[]
 
   @@map("species")
 }
@@ -170,3 +173,42 @@ model ChallengeProgress {
   @@map("challenge_progress")
 }
 
+model ForumPost {
+  id        String   @id @default(uuid())
+  authorId  String
+  parentId  String?
+  speciesId Int?
+  title     String?
+  body      String   @db.Text
+  upvotes   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author  User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent  ForumPost?  @relation("PostReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies ForumPost[] @relation("PostReplies")
+  species Species?    @relation(fields: [speciesId], references: [id], onDelete: SetNull)
+
+  @@index([authorId])
+  @@index([parentId])
+  @@index([speciesId])
+  @@index([createdAt])
+  @@map("forum_posts")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  message   String
+  data      Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+  @@map("notifications")
+}
