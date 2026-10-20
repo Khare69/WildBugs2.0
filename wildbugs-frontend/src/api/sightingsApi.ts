@@ -63,6 +63,34 @@ export const sightingsApi = {
     });
     return response.data;
   },
+
+  /**
+   * Verify an observation as an expert or administrator.
+   */
+  async verifySighting(
+    id: string,
+    payload?: { speciesId?: number; notes?: string }
+  ): Promise<SightingDetailResponse> {
+    const response = await apiClient.put<SightingDetailResponse>(
+      `/sightings/${id}/verify`,
+      payload
+    );
+    return response.data;
+  },
+
+  /**
+   * Reject an observation as an expert or administrator.
+   */
+  async rejectSighting(
+    id: string,
+    payload?: { reason?: string }
+  ): Promise<SightingDetailResponse> {
+    const response = await apiClient.put<SightingDetailResponse>(
+      `/sightings/${id}/reject`,
+      payload
+    );
+    return response.data;
+  },
 };
 
 export default sightingsApi;

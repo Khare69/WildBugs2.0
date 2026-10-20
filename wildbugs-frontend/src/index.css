@@ -6425,5 +6425,318 @@ button {
   margin: 0 auto 1.5rem;
 }
 
+/* ==========================================================================
+   Phase 5 — Expert Verification Badge & Review Desk Styles
+   ========================================================================== */
+
+.sighting-status-ribbon-card {
+  margin-bottom: 1.25rem;
+}
+
+.expert-verify-badge-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.85rem 1.15rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  transition: all 0.25s ease;
+}
+
+.expert-verify-badge__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.expert-verify-badge__icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.expert-verify-badge__label {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.expert-verify-badge__description {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* Verify Badge Status Themes */
+.verify-badge--verified {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.08) 100%);
+  border-color: rgba(52, 211, 153, 0.45);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.15);
+}
+
+.verify-badge--verified .expert-verify-badge__label {
+  color: #34d399;
+}
+
+.verify-badge--verified .expert-verify-badge__description {
+  color: #a7f3d0;
+}
+
+.verify-badge--rejected {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(185, 28, 28, 0.08) 100%);
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
+.verify-badge--rejected .expert-verify-badge__label {
+  color: #f87171;
+}
+
+.verify-badge--rejected .expert-verify-badge__description {
+  color: #fca5a5;
+}
+
+.verify-badge--identified {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(2, 132, 199, 0.08) 100%);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.verify-badge--identified .expert-verify-badge__label {
+  color: #38bdf8;
+}
+
+.verify-badge--identified .expert-verify-badge__description {
+  color: #bae6fd;
+}
+
+.verify-badge--pending {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(180, 83, 9, 0.06) 100%);
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+.verify-badge--pending .expert-verify-badge__label {
+  color: #fbbf24;
+}
+
+.verify-badge--pending .expert-verify-badge__description {
+  color: #fde68a;
+}
+
+/* Badge Sizes */
+.expert-verify-badge--sm {
+  padding: 0.5rem 0.75rem;
+}
+
+.expert-verify-badge--sm .expert-verify-badge__icon {
+  font-size: 1rem;
+}
+
+.expert-verify-badge--sm .expert-verify-badge__label {
+  font-size: 0.85rem;
+}
+
+.expert-verify-badge--md .expert-verify-badge__label {
+  font-size: 0.95rem;
+}
+
+.expert-verify-badge--lg {
+  padding: 1.15rem 1.5rem;
+}
+
+.expert-verify-badge--lg .expert-verify-badge__label {
+  font-size: 1.15rem;
+}
+
+/* Expert Review Desk Panel */
+.expert-review-panel {
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+  border: 1.5px solid rgba(99, 102, 241, 0.4);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35), 0 0 20px rgba(99, 102, 241, 0.15);
+}
+
+.expert-review-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.expert-review-panel__title-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.expert-panel-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.expert-panel-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #e0e7ff;
+}
+
+.expert-panel-subtitle {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: #a5b4fc;
+}
+
+.expert-review-panel__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-verify-action {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.6rem 1.15rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-verify-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.btn-reject-action {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 1rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-reject-action:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #f87171;
+}
+
+.expert-review-feedback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.expert-review-feedback--success {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid #10b981;
+  color: #34d399;
+}
+
+.expert-review-feedback--error {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: #f87171;
+}
+
+.btn-close-feedback {
+  background: transparent;
+  border: none;
+  color: currentColor;
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin-left: 0.5rem;
+}
+
+/* Expert Review Modals */
+.expert-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.expert-modal-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.expert-modal-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.expert-modal-card__header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.btn-modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.btn-modal-close:hover {
+  color: var(--text-main);
+}
+
+.expert-modal-form {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.reject-warning-text {
+  font-size: 0.88rem;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border-left: 3px solid #ef4444;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.expert-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+
 
 

@@ -3,10 +3,16 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { sightingsApi } from '../api/sightingsApi';
 import IdentificationResult from '../components/sightings/IdentificationResult';
+import ExpertVerifyBadge from '../components/sightings/ExpertVerifyBadge';
+import ExpertReviewControls from '../components/sightings/ExpertReviewControls';
+import { canPerformExpertVerification } from '../components/sightings/expertVerificationUtils';
+import useAuthStore from '../store/authStore';
 
 export const SightingDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const isExpertOrAdmin = canPerformExpertVerification(user?.role);
   const [copiedCoords, setCopiedCoords] = useState(false);
 
   const {
@@ -157,6 +163,23 @@ export const SightingDetailPage: React.FC = () => {
 
         {/* Right Column: AI Identification & Species Spotlight */}
         <div className="sighting-identification-col">
+          {/* Expert Review Actions for Credentialed Naturalists */}
+          {isExpertOrAdmin && (
+            <ExpertReviewControls
+              sighting={sighting}
+              onSuccess={() => void refetch()}
+            />
+          )}
+
+          {/* Sighting Status & Expert Accreditation Ribbon */}
+          <div className="sighting-status-ribbon-card">
+            <ExpertVerifyBadge
+              status={sighting.status}
+              showDescription={true}
+              size="md"
+            />
+          </div>
+
           <IdentificationResult
             sighting={sighting}
             onRefresh={() => void refetch()}
