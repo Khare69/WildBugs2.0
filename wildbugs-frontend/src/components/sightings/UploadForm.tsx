@@ -8,9 +8,20 @@ import { sightingsApi } from '../../api/sightingsApi';
 import { formatFileSize } from '../../utils/compressImage';
 import type { Species } from '../../types/species';
 import PhotoCapture from './PhotoCapture';
+import { useOfflineQueue } from '../../hooks/useOfflineQueue';
 
 export const UploadForm: React.FC = () => {
   const navigate = useNavigate();
+  const {
+    isOnline,
+    queueCount,
+    addToQueue,
+    syncNow,
+    isSyncing,
+    lastSyncMessage,
+  } = useOfflineQueue();
+
+  const [queuedNotice, setQueuedNotice] = useState<boolean>(false);
   const {
     step,
     setStep,
@@ -116,6 +127,27 @@ export const UploadForm: React.FC = () => {
       return;
     }
 
+    // Offline mode: save directly to IndexedDB queue
+    if (!isOnline) {
+      try {
+        setIsUploading(true);
+        setError(null);
+        await addToQueue({
+          photo: compressedFile,
+          latitude: latNum,
+          longitude: lngNum,
+          speciesId: speciesId ?? undefined,
+          observedAt: observedAt ? new Date(observedAt).toISOString() : undefined,
+        });
+        setQueuedNotice(true);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to save sighting to offline queue.');
+      } finally {
+        setIsUploading(false);
+      }
+      return;
+    }
+
     try {
       setIsUploading(true);
       setError(null);
@@ -141,6 +173,23 @@ export const UploadForm: React.FC = () => {
       setUploadProgress(100);
       setCreatedSighting(response.data.sighting);
     } catch (err: unknown) {
+      // Auto-fallback to offline queue if network drops mid-request
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        try {
+          await addToQueue({
+            photo: compressedFile,
+            latitude: latNum,
+            longitude: lngNum,
+            speciesId: speciesId ?? undefined,
+            observedAt: observedAt ? new Date(observedAt).toISOString() : undefined,
+          });
+          setQueuedNotice(true);
+          return;
+        } catch {
+          // ignore fallback error and report original error
+        }
+      }
+
       const errorMsg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         (err as Error).message ||
@@ -159,6 +208,45 @@ export const UploadForm: React.FC = () => {
 
   return (
     <div className="upload-wizard-container">
+      {/* Offline Mode Indicator */}
+      {!isOnline && (
+        <div className="upload-alert-offline" role="status">
+          <span className="alert-icon">📡</span>
+          <div className="alert-body">
+            <strong>Offline Mode:</strong> Internet connection is currently unavailable. Observations will be safely saved to your local offline queue and uploaded when your connection is restored.
+          </div>
+        </div>
+      )}
+
+      {/* Sync Queue Summary Banner */}
+      {queueCount > 0 && (
+        <div className="upload-queue-banner">
+          <div className="queue-banner-info">
+            <span className="queue-badge-icon">📦</span>
+            <span>
+              <strong>{queueCount}</strong> {queueCount === 1 ? 'observation' : 'observations'} saved in offline sync queue
+            </span>
+          </div>
+          {isOnline && (
+            <button
+              type="button"
+              className="btn-queue-sync"
+              onClick={() => syncNow()}
+              disabled={isSyncing}
+            >
+              {isSyncing ? '🔄 Syncing...' : '⚡ Sync Now'}
+            </button>
+          )}
+        </div>
+      )}
+
+      {lastSyncMessage && (
+        <div className="upload-alert-sync" role="status">
+          <span className="alert-icon">✨</span>
+          <div className="alert-body">{lastSyncMessage}</div>
+        </div>
+      )}
+
       {/* Wizard Progress Indicator */}
       <div className="wizard-step-bar" aria-label="Upload Progress Steps">
         <div className={`step-item ${step === 'capture' ? 'active' : 'completed'}`}>
@@ -181,6 +269,48 @@ export const UploadForm: React.FC = () => {
           <span className="step-label">AI Status</span>
         </div>
       </div>
+
+      {queuedNotice && (
+        <div className="upload-offline-queued-card">
+          <div className="offline-icon-badge">📦</div>
+          <h2>Saved to queue (will upload when online)</h2>
+          <p className="offline-description">
+            Your insect sighting and compressed observation photo are safely stored in your device&apos;s IndexedDB offline queue. As soon as you reconnect, WildBugs will automatically upload the observation to Cloud Vision AI.
+          </p>
+          <div className="offline-queue-status-bar">
+            <span>Pending Sync: <strong>{queueCount} {queueCount === 1 ? 'item' : 'items'}</strong></span>
+            {isOnline && (
+              <button
+                type="button"
+                className="btn-primary btn-sm"
+                onClick={() => syncNow()}
+                disabled={isSyncing}
+              >
+                {isSyncing ? 'Syncing...' : 'Sync Now'}
+              </button>
+            )}
+          </div>
+          <div className="success-action-row">
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => {
+                setQueuedNotice(false);
+                reset();
+              }}
+            >
+              ➕ Record Another Observation
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => navigate('/profile')}
+            >
+              👤 Go to Field Journal
+            </button>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="upload-alert-error" role="alert">

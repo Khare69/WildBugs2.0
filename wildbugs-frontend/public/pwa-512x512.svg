@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1b4332"/>
+      <stop offset="50%" stop-color="#0f2b20"/>
+      <stop offset="100%" stop-color="#081c15"/>
+    </linearGradient>
+    <linearGradient id="emeraldGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#74c69d"/>
+      <stop offset="50%" stop-color="#52b788"/>
+      <stop offset="100%" stop-color="#2d6a4f"/>
+    </linearGradient>
+    <filter id="glow512" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background rounded rect -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad512)"/>
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="none" stroke="#2d6a4f" stroke-width="6" opacity="0.6"/>
+
+  <!-- Glowing outer circular rings -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#52b788" stroke-width="3" stroke-dasharray="14 10" opacity="0.45"/>
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#2d6a4f" stroke-width="1.5" opacity="0.3"/>
+
+  <!-- Insect Icon Graphics -->
+  <g transform="translate(256, 256)">
+    <!-- Antennae -->
+    <path d="M-32 -100 Q-74 -165 -118 -150" fill="none" stroke="#74c69d" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="-118" cy="-150" r="9" fill="#95d5b2" filter="url(#glow512)"/>
+    <path d="M32 -100 Q74 -165 118 -150" fill="none" stroke="#74c69d" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="118" cy="-150" r="9" fill="#95d5b2" filter="url(#glow512)"/>
+
+    <!-- Legs Left -->
+    <path d="M-60 -36 Q-135 -64 -150 -26" fill="none" stroke="#40916c" stroke-width="8" stroke-linecap="round"/>
+    <path d="M-74 16 Q-150 16 -160 58" fill="none" stroke="#40916c" stroke-width="8" stroke-linecap="round"/>
+    <path d="M-64 70 Q-140 102 -144 144" fill="none" stroke="#40916c" stroke-width="8" stroke-linecap="round"/>
+
+    <!-- Legs Right -->
+    <path d="M60 -36 Q135 -64 150 -26" fill="none" stroke="#40916c" stroke-width="8" stroke-linecap="round"/>
+    <path d="M74 16 Q150 16 160 58" fill="none" stroke="#40916c" stroke-width="8" stroke-linecap="round"/>
+    <path d="M64 70 Q140 102 144 144" fill="none" stroke="#40916c" stroke-width="8" stroke-linecap="round"/>
+
+    <!-- Head -->
+    <circle cx="0" cy="-90" r="38" fill="#52b788" filter="url(#glow512)"/>
+    <circle cx="-16" cy="-96" r="8" fill="#d8f3dc"/>
+    <circle cx="16" cy="-96" r="8" fill="#d8f3dc"/>
+
+    <!-- Thorax -->
+    <ellipse cx="0" cy="-36" rx="48" ry="32" fill="url(#emeraldGrad512)"/>
+
+    <!-- Elytra / Abdomen Wings -->
+    <path d="M-5 -5 Q-96 48 -70 128 Q-32 160 -2 170 Z" fill="url(#emeraldGrad512)" stroke="#74c69d" stroke-width="4"/>
+    <path d="M5 -5 Q96 48 70 128 Q32 160 2 170 Z" fill="url(#emeraldGrad512)" stroke="#74c69d" stroke-width="4"/>
+
+    <!-- Wing accent dots -->
+    <circle cx="-38" cy="64" r="6" fill="#95d5b2" opacity="0.8"/>
+    <circle cx="-28" cy="108" r="5" fill="#95d5b2" opacity="0.8"/>
+    <circle cx="38" cy="64" r="6" fill="#95d5b2" opacity="0.8"/>
+    <circle cx="28" cy="108" r="5" fill="#95d5b2" opacity="0.8"/>
+  </g>
+</svg>
