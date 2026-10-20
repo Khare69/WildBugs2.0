@@ -10,6 +10,8 @@ import AccountPage from './pages/AccountPage';
 import ProfilePage from './pages/ProfilePage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ChallengesPage from './pages/ChallengesPage';
+import ForumPage from './pages/ForumPage';
+import ForumThreadPage from './pages/ForumThreadPage';
 import UploadPage from './pages/UploadPage';
 import SightingDetailPage from './pages/SightingDetailPage';
 import MapPage from './pages/MapPage';
@@ -27,6 +29,8 @@ export const App: React.FC = () => {
           <Route path="/map" element={<MapPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/challenges" element={<ChallengesPage />} />
+          <Route path="/forum" element={<ForumPage />} />
+          <Route path="/forum/:id" element={<ForumThreadPage />} />
           <Route
             path="/upload"
             element={
