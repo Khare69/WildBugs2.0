@@ -9,6 +9,7 @@ import mapRoutes from './routes/mapRoutes';
 import userRoutes from './routes/userRoutes';
 import challengeRoutes from './routes/challengeRoutes';
 import forumRoutes from './routes/forumRoutes';
+import notificationRoutes from './routes/notificationRoutes';
 
 import env from './config/env';
 
@@ -45,6 +46,7 @@ app.use('/api/map', mapRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/challenges', challengeRoutes);
 app.use('/api/forum', forumRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // 404 Catch-All Handler for Undefined Routes
 app.all('*', (req: Request, _res: Response, next: NextFunction) => {

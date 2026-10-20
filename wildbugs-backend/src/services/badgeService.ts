@@ -222,18 +222,36 @@ export class BadgeService {
 
       const evalResult = evaluateBadgeCriterion(criteria, context);
       if (evalResult.satisfied) {
-        try {
-          const awarded = await prisma.userBadge.create({
-            data: {
-              userId,
-              badgeId: badge.id,
-            },
-            include: { badge: true },
-          });
-          newlyEarnedBadges.push(awarded.badge);
-        } catch {
-          // Ignore unique constraint race condition
-        }
+          try {
+            const awarded = await prisma.userBadge.create({
+              data: {
+                userId,
+                badgeId: badge.id,
+              },
+              include: { badge: true },
+            });
+            newlyEarnedBadges.push(awarded.badge);
+
+            // Dispatch notification for earned badge
+            try {
+              await prisma.notification.create({
+                data: {
+                  userId,
+                  type: 'BADGE_EARNED',
+                  message: `🏆 Achievement Unlocked: You earned the "${badge.name}" badge!`,
+                  data: {
+                    badgeId: badge.id,
+                    badgeName: badge.name,
+                    iconUrl: badge.iconUrl,
+                  },
+                },
+              });
+            } catch {
+              // Non-blocking notification error
+            }
+          } catch {
+            // Ignore unique constraint race condition
+          }
       }
     }
 
