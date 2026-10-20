@@ -55,6 +55,12 @@ export const Navbar: React.FC = () => {
             🏆 Leaderboard
           </NavLink>
           <NavLink
+            to="/challenges"
+            className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}
+          >
+            🎯 Challenges
+          </NavLink>
+          <NavLink
             to="/upload"
             className={({ isActive }) => `nav-link nav-link-upload ${isActive ? 'nav-link-active' : ''}`}
           >
@@ -138,6 +144,13 @@ export const Navbar: React.FC = () => {
             onClick={closeMenu}
           >
             🏆 Leaderboard
+          </NavLink>
+          <NavLink
+            to="/challenges"
+            className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
+            onClick={closeMenu}
+          >
+            🎯 Challenges
           </NavLink>
           <NavLink
             to="/upload"

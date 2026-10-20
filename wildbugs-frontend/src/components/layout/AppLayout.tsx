@@ -58,6 +58,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               <li>
                 <Link to="/leaderboard">Leaderboard & Rankings</Link>
               </li>
+              <li>
+                <Link to="/challenges">Seasonal Challenges</Link>
+              </li>
               {isAuthenticated ? (
                 <li>
                   <Link to="/account">My Account & Stats</Link>
