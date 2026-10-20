@@ -36,8 +36,62 @@
 | **Phase 2** | **Core Upload Loop** | ✅ Completed | Media capture, Cloudinary pipeline, async Cloud Vision AI worker, discovery view |
 | **Phase 3** | **Biodiversity Map** | ✅ Completed | PostGIS spatial queries, interactive Leaflet map, clustering, density heatmap |
 | **Phase 4** | **Engagement & Gamification** | ✅ Completed | User profiles, field journal, streak engine, automated badges, seasonal challenges |
-| **Phase 5** | **Community & Moderation** | ⏳ Upcoming | Forum threads, expert verification system, notification bell with polling |
+| **Phase 5** | **Community & Moderation** | ✅ Completed | Forum threads, expert verification system, notification bell with polling |
 | **Phase 6** | **Polish, Hardening & Deployment** | ⏳ Upcoming | PWA offline sync, Redis caching, rate limiting, Docker containerization, health probes |
+
+---
+
+## 👥 Phase 5 Features & Architecture: Community, Expert Verification & Notifications
+
+### 1. Community Discussion Forum
+- **Hierarchical Threaded Discussions (`/forum`, `/forum/:id`)**:
+  - Prisma relational `ForumPost` schema supporting top-level threads and recursive replies (`parentId`).
+  - High-performance recursive tree-builder transforming flat relational queries into conversational reply trees with zero N+1 database overhead.
+  - Optional species cross-tagging linking forum threads directly to biological catalog entries.
+  - Optimistic client-side upvoting mechanism with instant UI feedback.
+- **Rich Markdown Editor (`ForumEditor.tsx`)**:
+  - Live markdown preview mode toggle with markdown syntax rendering.
+  - Formatting toolbar shortcuts for bold, italic, inline code, blockquote, and list items.
+  - Character validation and error boundaries preventing empty submissions.
+
+### 2. Expert Verification System
+- **Role-Based Access Control (`authorize` Middleware)**:
+  - Enterprise RBAC middleware restricting verification endpoints to users with `EXPERT` or `ADMIN` roles.
+  - Returns structured `InsufficientPermissionsError` (403 Forbidden) for unauthorized accounts.
+- **Expert Review Desk (`ExpertReviewControls.tsx`)**:
+  - Interactive management console on `SightingDetailPage.tsx` visible exclusively to accredited experts and administrators.
+  - **Verify Workflow**: Sets sighting status to `VERIFIED`, attaches verified identification record, and automatically triggers an observer reward notification.
+  - **Reject Workflow**: Sets status to `REJECTED` and notifies observer with constructive identification feedback.
+- **Official Verification Seal (`ExpertVerifyBadge.tsx`)**:
+  - Glowing emerald verified stamp badge affixed to observation headers with expert attribution metadata.
+
+### 3. Real-Time Notification Engine
+- **Event-Driven Notification Generation (`notificationService.ts`)**:
+  - Automatically dispatches in-app notifications on key platform events:
+    - Sighting verified by accredited expert.
+    - Sighting rejected with identification feedback.
+    - Milestone badge unlocked.
+    - Seasonal BioBlitz challenge milestone achieved.
+- **Polling Navbar Bell (`NotificationBell.tsx`)**:
+  - TanStack Query polling every 30 seconds (`refetchInterval: 30000`), dynamically gated on active authentication session.
+  - Glowing red unread badge counter with pulse animation.
+  - Interactive popover listing recent notifications with categorical iconography, relative time formatting (`Just now`, `5m ago`), and direct navigation links.
+  - Individual "mark read" and global "mark all read" actions.
+
+#### API Reference (Community, Verification & Notification Endpoints)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET` | `/api/forum/posts` | Paginated forum threads listing with species and search filtering | No |
+| `GET` | `/api/forum/posts/:id` | Full discussion thread with complete recursive reply tree | No |
+| `POST` | `/api/forum/posts` | Create top-level discussion thread (`title`, `body`, `speciesId`) | Yes (Bearer) |
+| `POST` | `/api/forum/posts/:id/reply` | Reply to an existing discussion thread or comment (`body`) | Yes (Bearer) |
+| `POST` | `/api/forum/posts/:id/upvote` | Atomic upvote increment on a discussion post | Yes (Bearer) |
+| `PUT` | `/api/sightings/:id/verify` | Verify sighting, set status to `VERIFIED`, and notify uploader | Yes (EXPERT/ADMIN) |
+| `PUT` | `/api/sightings/:id/reject` | Reject sighting, set status to `REJECTED`, and notify uploader | Yes (EXPERT/ADMIN) |
+| `GET` | `/api/notifications` | Paginated notification stream for authenticated user | Yes (Bearer) |
+| `GET` | `/api/notifications/unread-count` | Lightweight unread notification count for navbar badge polling | Yes (Bearer) |
+| `PUT` | `/api/notifications/:id/read` | Mark individual notification as read | Yes (Bearer) |
+| `PUT` | `/api/notifications/read-all` | Mark all notifications for authenticated user as read | Yes (Bearer) |
 
 ---
 
