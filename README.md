@@ -35,9 +35,59 @@
 | **Phase 1** | **Foundation** | ✅ Completed | Scaffolding, Prisma v6 schema, 30-species seed, JWT auth, species catalog & layout shell |
 | **Phase 2** | **Core Upload Loop** | ✅ Completed | Media capture, Cloudinary pipeline, async Cloud Vision AI worker, discovery view |
 | **Phase 3** | **Biodiversity Map** | ✅ Completed | PostGIS spatial queries, interactive Leaflet map, clustering, density heatmap |
-| **Phase 4** | **Engagement & Gamification** | ⏳ Upcoming | User profiles, field journal, streak engine, automated badges, seasonal challenges |
+| **Phase 4** | **Engagement & Gamification** | ✅ Completed | User profiles, field journal, streak engine, automated badges, seasonal challenges |
 | **Phase 5** | **Community & Moderation** | ⏳ Upcoming | Forum threads, expert verification system, notification bell with polling |
 | **Phase 6** | **Polish, Hardening & Deployment** | ⏳ Upcoming | PWA offline sync, Redis caching, rate limiting, Docker containerization, health probes |
+
+---
+
+## 🏆 Phase 4 Features & Architecture: Engagement & Gamification
+
+### 1. User Profiles & Chronological Field Journal
+- **Naturalist Profile (`/api/users/me`, `/api/users/:id`)**:
+  - Aggregates comprehensive observer statistics: total sightings, unique cataloged species, verified records count, precision accuracy rate, and active/longest observation streaks.
+- **Paginated Field Journal (`/api/users/:id/journal`)**:
+  - Delivers a reverse-chronological observation timeline with species details, taxonomic family chips, coordinates, and verification tags.
+  - Interactive infinite scrolling and page pagination support.
+
+### 2. Habit Tracking & Redis-Cached Leaderboards
+- **Consecutive Observation Streak Engine**:
+  - Pure calculation algorithm determining active daily observation streaks and personal records.
+  - 7-day visual dot matrix tracker with animated flame badges.
+- **High-Performance Leaderboards (`/api/users/leaderboard`)**:
+  - Caches platform-wide rankings in Redis with a 15-minute TTL and transparent database fallback.
+  - Three distinct ranking metrics: **Most Sightings** (🔭), **Unique Species** (🐞), and **Top Verifiers** (🛡️).
+  - 3D visual podium for the top 3 observers (🥇 Champion, 🥈 Runner-up, 🥉 3rd Place) with observer role badges.
+
+### 3. Automated Milestone Badge Engine
+- **Achievement Catalogue**: Includes platform achievements such as `First Sighting` (🧭), `Biodiversity Explorer` (🦋), `Century Club` (💯), `Night Owl` (🦉), `Early Bird` (🌅), `Week Warrior` (🔥), and `Master Verifier` (🛡️).
+- **Asynchronous BullMQ Evaluation**: Evaluates milestone criteria asynchronously on every new sighting ingestion without delaying HTTP responses.
+- **Interactive Trophy Grid (`/api/users/:id/badges`)**:
+  - Real-time progress percentages, target thresholds, and unlocked dates.
+  - Unlocked glowing emerald medals, locked greyscale styling with progress bars, filter tabs, and modal requirement inspector.
+
+### 4. Seasonal BioBlitz Challenges
+- **Prisma Relational Models**: `Challenge` and `ChallengeProgress` tables with composite uniqueness `[challengeId, userId]`.
+- **BioBlitz Participation API (`/api/challenges`, `/:id/join`, `/:id/progress`)**:
+  - Active challenges catalog annotated with remaining days and enrollment counts.
+  - One-click challenge join with immediate backfill from eligible field sightings recorded during the quest window.
+  - Automatic progress updates triggered via background workers.
+- **Seasonal Challenges UI (`/challenges`)**:
+  - Filterable by `All`, `Active`, `Joined`, and `Completed`.
+  - Accessible animated `<ProgressBar />` component and interactive `<ChallengeCard />` with countdown timers and status chips.
+
+#### API Reference (Engagement & Gamification Endpoints)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET` | `/api/users/me` | Authenticated user profile, discovery stats, and streak metrics | Yes (Bearer) |
+| `GET` | `/api/users/:id` | Public profile and stats for any observer | No |
+| `GET` | `/api/users/:id/journal` | Paginated chronological observation field journal | No |
+| `GET` | `/api/users/leaderboard` | Top naturalists ranked by sightings, species, or verified records (Redis 15m) | No |
+| `GET` | `/api/users/:id/badges` | Platform achievements with user earned status and criteria progress | No |
+| `GET` | `/api/challenges` | Active and upcoming seasonal bioblitz challenges with user progress | Optional |
+| `GET` | `/api/challenges/:id` | Single challenge details and participant counts | Optional |
+| `POST` | `/api/challenges/:id/join` | Enroll authenticated naturalist in a seasonal challenge | Yes (Bearer) |
+| `GET` | `/api/challenges/:id/progress` | User's progress in a specific seasonal challenge | Yes (Bearer) |
 
 ---
 
