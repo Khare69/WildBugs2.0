@@ -11,6 +11,8 @@ import challengeRoutes from './routes/challengeRoutes';
 import forumRoutes from './routes/forumRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import { generalLimiter } from './middleware/rateLimiter';
+import prisma from './database/prisma';
+import { redisConnection } from './database/redis';
 
 import env from './config/env';
 
@@ -30,12 +32,38 @@ app.use(
 );
 app.use(express.json({ limit: '10mb' }));
 
-// Base Health Check Route (not rate-limited)
-app.get('/api/health', (_req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
+// Deep Health Check Route (probes Database & Redis connectivity)
+app.get('/api/health', async (_req: Request, res: Response) => {
+  let dbHealthy = false;
+  let redisHealthy = false;
+
+  // 1. Probe database connection
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    dbHealthy = true;
+  } catch {
+    dbHealthy = false;
+  }
+
+  // 2. Probe Redis connection
+  try {
+    if (redisConnection && redisConnection.status === 'ready') {
+      await redisConnection.ping();
+      redisHealthy = true;
+    }
+  } catch {
+    redisHealthy = false;
+  }
+
+  const isHealthy = dbHealthy && redisHealthy;
+  const statusCode = isHealthy ? 200 : 503;
+
+  res.status(statusCode).json({
+    status: isHealthy ? 'healthy' : 'degraded',
+    db: dbHealthy,
+    redis: redisHealthy,
     service: 'wildbugs-api',
+    timestamp: new Date().toISOString(),
   });
 });
 
