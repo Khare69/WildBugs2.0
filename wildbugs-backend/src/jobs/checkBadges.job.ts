@@ -1,6 +1,7 @@
 import { Job } from 'bullmq';
 import { BadgeJobData } from './queue';
 import badgeService from '../services/badgeService';
+import challengeService from '../services/challengeService';
 
 export interface BadgeProcessResult {
   userId: string;
@@ -14,6 +15,7 @@ export interface BadgeProcessResult {
  * 1. Reads user ID from job data.
  * 2. Evaluates criteria across all platform badges against user activity metrics.
  * 3. Records UserBadge associations for any newly achieved achievements.
+ * 4. Updates active seasonal challenge progress for the observer.
  */
 export const processBadgeJob = async (
   job: Job<BadgeJobData>
@@ -21,7 +23,10 @@ export const processBadgeJob = async (
   const { userId } = job.data;
 
   try {
-    const newlyAwarded = await badgeService.evaluateBadges(userId);
+    const [newlyAwarded] = await Promise.all([
+      badgeService.evaluateBadges(userId),
+      challengeService.updateUserChallengeProgress(userId),
+    ]);
     const awardedNames = newlyAwarded.map((b) => b.name);
 
     if (awardedNames.length > 0) {

@@ -7,6 +7,7 @@ import speciesRoutes from './routes/speciesRoutes';
 import sightingRoutes from './routes/sightingRoutes';
 import mapRoutes from './routes/mapRoutes';
 import userRoutes from './routes/userRoutes';
+import challengeRoutes from './routes/challengeRoutes';
 
 import env from './config/env';
 
@@ -41,6 +42,7 @@ app.use('/api/species', speciesRoutes);
 app.use('/api/sightings', sightingRoutes);
 app.use('/api/map', mapRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/challenges', challengeRoutes);
 
 // 404 Catch-All Handler for Undefined Routes
 app.all('*', (req: Request, _res: Response, next: NextFunction) => {
