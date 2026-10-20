@@ -1,6 +1,7 @@
 import { Sighting } from '@prisma/client';
 import prisma from '../database/prisma';
 import imageService from './imageService';
+import cacheService from './cacheService';
 import { addIdentificationJob, addBadgeCheckJob } from '../jobs/queue';
 import { NotFoundError, ValidationError } from '../utils/errors';
 
@@ -92,6 +93,10 @@ export class SightingService {
 
     // 6. Enqueue background badge check job for observer
     await addBadgeCheckJob(userId);
+
+    // 7. Invalidate geospatial and leaderboard caches
+    await cacheService.invalidate('map:*');
+    await cacheService.invalidate('wildbugs:leaderboard:*');
 
     return sighting;
   }
@@ -323,6 +328,10 @@ export class SightingService {
       // Ignore notification creation errors if non-critical
     }
 
+    // 6. Invalidate map and leaderboard caches
+    await cacheService.invalidate('map:*');
+    await cacheService.invalidate('wildbugs:leaderboard:*');
+
     return updated;
   }
 
@@ -380,6 +389,10 @@ export class SightingService {
     } catch {
       // Ignore notification creation errors if non-critical
     }
+
+    // Invalidate map and leaderboard caches
+    await cacheService.invalidate('map:*');
+    await cacheService.invalidate('wildbugs:leaderboard:*');
 
     return updated;
   }

@@ -1,6 +1,7 @@
 import prisma from '../database/prisma';
 import { NotFoundError } from '../utils/errors';
 import { Species, Prisma } from '@prisma/client';
+import cacheService from './cacheService';
 
 export interface SpeciesListQuery {
   search?: string;
@@ -27,9 +28,15 @@ export interface SpeciesDetail extends Species {
 
 export class SpeciesService {
   /**
-   * Retrieves a paginated and filtered list of species from the database.
+   * Retrieves a paginated and filtered list of species from the database (cached 1hr).
    */
   public async getSpeciesList(query: SpeciesListQuery): Promise<PaginatedSpeciesResponse> {
+    const cacheKey = `species:list:${JSON.stringify(query)}`;
+    const cached = await cacheService.get<PaginatedSpeciesResponse>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     const page = Math.max(1, query.page || 1);
     const limit = Math.min(100, Math.max(1, query.limit || 20));
     const skip = (page - 1) * limit;
@@ -72,19 +79,30 @@ export class SpeciesService {
 
     const totalPages = Math.ceil(total / limit);
 
-    return {
+    const result: PaginatedSpeciesResponse = {
       species,
       total,
       page,
       limit,
       totalPages,
     };
+
+    // Cache in Redis for 1 hour (3600 seconds)
+    await cacheService.set(cacheKey, result, 3600);
+
+    return result;
   }
 
   /**
-   * Retrieves a single species by its unique ID.
+   * Retrieves a single species by its unique ID (cached 1hr).
    */
   public async getSpeciesById(id: number): Promise<SpeciesDetail> {
+    const cacheKey = `species:detail:${id}`;
+    const cached = await cacheService.get<SpeciesDetail>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     const species = await prisma.species.findUnique({
       where: { id },
       include: {
@@ -101,13 +119,21 @@ export class SpeciesService {
       throw new NotFoundError(`Species with ID ${id} was not found`);
     }
 
+    await cacheService.set(cacheKey, species, 3600);
+
     return species;
   }
 
   /**
-   * Retrieves distinct taxonomic families present in the species catalog.
+   * Retrieves distinct taxonomic families present in the species catalog (cached 1hr).
    */
   public async getFamilies(): Promise<{ family: string; count: number }[]> {
+    const cacheKey = 'species:families';
+    const cached = await cacheService.get<{ family: string; count: number }[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     const groups = await prisma.species.groupBy({
       by: ['family'],
       _count: {
@@ -118,10 +144,14 @@ export class SpeciesService {
       },
     });
 
-    return groups.map((g) => ({
+    const result = groups.map((g) => ({
       family: g.family,
       count: g._count.id,
     }));
+
+    await cacheService.set(cacheKey, result, 3600);
+
+    return result;
   }
 }
 

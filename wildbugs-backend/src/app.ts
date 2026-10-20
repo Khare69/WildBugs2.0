@@ -10,6 +10,7 @@ import userRoutes from './routes/userRoutes';
 import challengeRoutes from './routes/challengeRoutes';
 import forumRoutes from './routes/forumRoutes';
 import notificationRoutes from './routes/notificationRoutes';
+import { generalLimiter } from './middleware/rateLimiter';
 
 import env from './config/env';
 
@@ -29,7 +30,7 @@ app.use(
 );
 app.use(express.json({ limit: '10mb' }));
 
-// Base Health Check Route
+// Base Health Check Route (not rate-limited)
 app.get('/api/health', (_req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',
@@ -37,6 +38,9 @@ app.get('/api/health', (_req: Request, res: Response) => {
     service: 'wildbugs-api',
   });
 });
+
+// Apply General Rate Limiter to all API routes (100 req/min/IP)
+app.use('/api', generalLimiter);
 
 // Mount Feature API Routes
 app.use('/api/auth', authRoutes);

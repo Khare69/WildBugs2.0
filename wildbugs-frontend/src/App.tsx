@@ -18,6 +18,8 @@ import MapPage from './pages/MapPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
+import ToastContainer from './components/ui/Toast';
+
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
@@ -63,6 +65,7 @@ export const App: React.FC = () => {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AppLayout>
+      <ToastContainer />
     </BrowserRouter>
   );
 };

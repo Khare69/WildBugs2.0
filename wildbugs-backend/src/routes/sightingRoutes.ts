@@ -4,18 +4,20 @@ import sightingController from '../controllers/sightingController';
 import { authenticate } from '../middleware/authenticate';
 import { authorize } from '../middleware/authorize';
 import { uploadSinglePhoto } from '../middleware/upload';
+import { uploadLimiter } from '../middleware/rateLimiter';
 import { asyncHandler } from '../middleware/errorHandler';
 
 const router = Router();
 
 /**
  * @route   POST /api/sightings
- * @desc    Upload and record a new insect sighting observation
+ * @desc    Upload and record a new insect sighting observation (rate-limited: 20/hr/user)
  * @access  Protected (Requires Bearer JWT token)
  */
 router.post(
   '/',
   authenticate,
+  uploadLimiter,
   uploadSinglePhoto,
   asyncHandler(sightingController.createHandler)
 );

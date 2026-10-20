@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import prisma from '../database/prisma';
+import cacheService from './cacheService';
 
 export interface GeoJSONPoint {
   type: 'Point';
@@ -133,6 +134,12 @@ export class MapService {
    * RFC 7946 GeoJSON Standard: Coordinates are [longitude, latitude].
    */
   public async getSightingsGeoJSON(filters: MapSightingsFilter): Promise<GeoJSONFeatureCollection> {
+    const cacheKey = `map:sightings:${JSON.stringify(filters)}`;
+    const cached = await cacheService.get<GeoJSONFeatureCollection>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     const where = this.buildWhereClause(filters);
     const limit = Math.min(5000, Math.max(1, filters.limit || 1000));
 
@@ -203,6 +210,8 @@ export class MapService {
       result.bbox = [filters.minLng, filters.minLat, filters.maxLng, filters.maxLat];
     }
 
+    await cacheService.set(cacheKey, result, 300);
+
     return result;
   }
 
@@ -269,9 +278,15 @@ export class MapService {
   }
 
   /**
-   * Retrieves density heatmap points within a bounding box or overall catalog.
+   * Retrieves density heatmap points within a bounding box or overall catalog (cached 300s).
    */
   public async getHeatmapData(filters: MapHeatmapFilter): Promise<HeatmapPoint[]> {
+    const cacheKey = `map:heatmap:${JSON.stringify(filters)}`;
+    const cached = await cacheService.get<HeatmapPoint[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     const where = this.buildWhereClause(filters);
 
     const sightings = await prisma.sighting.findMany({
@@ -284,7 +299,11 @@ export class MapService {
     });
 
     const gridSize = filters.gridSize || 0.01;
-    return this.aggregateIntoGridCells(sightings, gridSize);
+    const points = this.aggregateIntoGridCells(sightings, gridSize);
+
+    await cacheService.set(cacheKey, points, 300);
+
+    return points;
   }
 }
 

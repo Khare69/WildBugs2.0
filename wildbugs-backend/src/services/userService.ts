@@ -1,5 +1,5 @@
 import prisma from '../database/prisma';
-import redisConnection from '../database/redis';
+import cacheService from './cacheService';
 import { NotFoundError, ValidationError } from '../utils/errors';
 
 export type LeaderboardMetric = 'sightings' | 'species' | 'verified';
@@ -337,21 +337,14 @@ export class UserService {
     const safeLimit = Math.min(50, Math.max(1, limit));
     const cacheKey = `wildbugs:leaderboard:${metric}:${safeLimit}`;
 
-    // 1. Try reading from Redis cache
-    try {
-      if (redisConnection && redisConnection.status === 'ready') {
-        const cached = await redisConnection.get(cacheKey);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          return {
-            metric,
-            rankings: parsed,
-            cached: true,
-          };
-        }
-      }
-    } catch {
-      // Graceful degradation when Redis is temporarily offline
+    // 1. Try reading from cache
+    const cachedRankings = await cacheService.get<LeaderboardEntry[]>(cacheKey);
+    if (cachedRankings) {
+      return {
+        metric,
+        rankings: cachedRankings,
+        cached: true,
+      };
     }
 
     // 2. Aggregate rankings from database
@@ -426,14 +419,8 @@ export class UserService {
       };
     });
 
-    // 4. Save to Redis cache with 15-minute TTL (900 seconds)
-    try {
-      if (redisConnection && redisConnection.status === 'ready') {
-        await redisConnection.set(cacheKey, JSON.stringify(rankings), 'EX', 900);
-      }
-    } catch {
-      // Ignore cache write errors
-    }
+    // 4. Save to cache with 15-minute TTL (900 seconds)
+    await cacheService.set(cacheKey, rankings, 900);
 
     return {
       metric,
