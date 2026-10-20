@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import NotificationBell from '../community/NotificationBell';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -75,9 +76,11 @@ export const Navbar: React.FC = () => {
         </nav>
 
         {/* Auth / Profile Area */}
-        <div className="navbar-auth-section">
+        <div className="navbar-auth-section" style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
           {isAuthenticated && user ? (
-            <div className="user-profile-badge">
+            <>
+              <NotificationBell />
+              <div className="user-profile-badge">
               <Link to="/profile" className="user-profile-link" title="View observer profile and field journal" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
                 <span className="user-avatar-circle">
                   {user.displayName.charAt(0).toUpperCase()}
@@ -96,6 +99,7 @@ export const Navbar: React.FC = () => {
                 Sign Out
               </button>
             </div>
+          </>
           ) : (
             <div className="auth-buttons-group">
               <Link to="/login" className="btn-nav-login">
