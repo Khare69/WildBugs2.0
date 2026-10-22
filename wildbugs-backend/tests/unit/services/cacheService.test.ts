@@ -1,6 +1,7 @@
 import test, { describe, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { cacheService } from '../../../src/services/cacheService';
+import { redisConfig, redisConnection } from '../../../src/database/redis';
 
 describe('CacheService Unit Tests', () => {
   beforeEach(() => {
@@ -59,5 +60,37 @@ describe('CacheService Unit Tests', () => {
     const second = await cacheService.getOrSet('test:getOrSet', fetcher, 10);
     assert.deepEqual(second, { computed: true });
     assert.equal(callCount, 1, 'Fetcher should not be called when value is cached');
+  });
+
+  test('redisConfig retryStrategy calculates jittered backoff capped at 3000ms', () => {
+    const delay1 = (redisConfig.retryStrategy as any)(1);
+    assert.ok(typeof delay1 === 'number' && delay1 >= 150 && delay1 <= 350);
+
+    const delayLarge = (redisConfig.retryStrategy as any)(100);
+    assert.equal(delayLarge, 3000);
+  });
+
+  test('scanStream invalidation handles stream error event without crashing', async () => {
+    const originalStatus = redisConnection.status;
+    const originalScanStream = (redisConnection as any).scanStream;
+
+    try {
+      (redisConnection as any).status = 'ready';
+      (redisConnection as any).scanStream = () => {
+        const { EventEmitter } = require('node:events');
+        const emitter = new EventEmitter();
+        setTimeout(() => {
+          emitter.emit('error', new Error('Simulated Redis stream error'));
+        }, 5);
+        return emitter;
+      };
+
+      await assert.doesNotReject(async () => {
+        await cacheService.invalidate('test:stream:*');
+      });
+    } finally {
+      (redisConnection as any).status = originalStatus;
+      (redisConnection as any).scanStream = originalScanStream;
+    }
   });
 });

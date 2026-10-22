@@ -10,12 +10,12 @@ export const redisConfig: RedisOptions = {
   enableReadyCheck: false,
   lazyConnect: true,
   retryStrategy(times: number) {
-    if (env.NODE_ENV === 'test' || times > 2) {
-      // Avoid infinite reconnection attempts when Redis server is offline
+    if (env.NODE_ENV === 'test') {
+      // Avoid hanging reconnection attempts during test runs
       return null;
     }
-    const delay = Math.min(times * 100, 1000);
-    return delay;
+    // Jittered exponential backoff: prevents thundering herd on redis restart
+    return Math.min(times * 150 + Math.random() * 200, 3000);
   },
 };
 

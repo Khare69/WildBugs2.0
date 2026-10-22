@@ -87,16 +87,45 @@ export class CacheService {
       }
     }
 
-    // 2. Invalidate Redis keys
+    // 2. Non-blocking Redis stream invalidation with error safeguards (SEC-03)
     if (redisConnection && redisConnection.status === 'ready') {
-      try {
-        const keys = await redisConnection.keys(pattern);
-        if (keys.length > 0) {
-          await redisConnection.del(...keys);
+      return new Promise<void>((resolve) => {
+        try {
+          const stream = redisConnection.scanStream({ match: pattern, count: 100 });
+          const pipeline = redisConnection.pipeline();
+          let hasError = false;
+
+          // CRITICAL: Attach error listener immediately to prevent unhandled EventEmitter exception crashing Node.js
+          stream.on('error', (err) => {
+            hasError = true;
+            console.warn('[CacheService] scanStream error during invalidation:', err);
+            resolve();
+          });
+
+          stream.on('data', (keys: string[]) => {
+            if (keys.length > 0) {
+              keys.forEach((key) => pipeline.del(key));
+            }
+          });
+
+          stream.on('end', async () => {
+            if (!hasError) {
+              try {
+                await pipeline.exec();
+              } catch (execErr) {
+                console.warn('[CacheService] Failed executing delete pipeline:', execErr);
+              }
+            }
+            resolve();
+          });
+
+          // Safety timeout to prevent unresolved promise if stream hangs
+          setTimeout(() => resolve(), 3000);
+        } catch (err) {
+          console.warn('[CacheService] Unexpected exception initializing scanStream:', err);
+          resolve();
         }
-      } catch (err) {
-        // Graceful handling
-      }
+      });
     }
   }
 
