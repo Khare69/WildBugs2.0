@@ -16,6 +16,7 @@ enum Role {
 enum SightingStatus {
   PENDING
   IDENTIFIED
+  UNIDENTIFIED
   VERIFIED
   REJECTED
 }

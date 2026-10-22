@@ -86,6 +86,18 @@ export const processIdentificationJob = async (
     };
   }
 
+  // When no match was found with AI vision, resolve pending status to UNIDENTIFIED
+  try {
+    await prisma.sighting.update({
+      where: { id: sightingId },
+      data: {
+        status: SightingStatus.UNIDENTIFIED,
+      },
+    });
+  } catch (err) {
+    console.warn(`[AI Worker] Failed to update sighting ${sightingId} to UNIDENTIFIED:`, err);
+  }
+
   return {
     sightingId,
     matched: false,

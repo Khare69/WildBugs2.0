@@ -1,6 +1,7 @@
 import { Species } from '@prisma/client';
 import prisma from '../database/prisma';
 import getVisionClient from '../config/vision';
+import cacheService from './cacheService';
 
 export interface VisionLabel {
   description: string;
@@ -72,7 +73,11 @@ export class IdentificationService {
 
     let allSpecies: Species[] = [];
     try {
-      allSpecies = await prisma.species.findMany();
+      allSpecies = await cacheService.getOrSet(
+        'catalog:all_species_taxonomy',
+        () => prisma.species.findMany(),
+        3600 // 1 hour TTL
+      );
     } catch {
       // In case database connection is unavailable during isolated tests
       return null;

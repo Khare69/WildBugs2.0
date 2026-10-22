@@ -37,6 +37,19 @@ export class CacheService {
   }
 
   /**
+   * Retrieves an item from cache, or executes the fetcher function, caches the result, and returns it.
+   */
+  public async getOrSet<T>(key: string, fetcher: () => Promise<T>, ttlSeconds = 300): Promise<T> {
+    const cached = await this.get<T>(key);
+    if (cached !== null) {
+      return cached;
+    }
+    const fresh = await fetcher();
+    await this.set(key, fresh, ttlSeconds);
+    return fresh;
+  }
+
+  /**
    * Stores an item into cache with a TTL in seconds.
    */
   public async set<T>(key: string, data: T, ttlSeconds = 300): Promise<void> {

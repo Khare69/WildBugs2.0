@@ -44,4 +44,20 @@ describe('CacheService Unit Tests', () => {
     const cached = await cacheService.get('expired:key');
     assert.equal(cached, null);
   });
+
+  test('retrieves or computes via getOrSet correctly', async () => {
+    let callCount = 0;
+    const fetcher = async () => {
+      callCount++;
+      return { computed: true };
+    };
+
+    const first = await cacheService.getOrSet('test:getOrSet', fetcher, 10);
+    assert.deepEqual(first, { computed: true });
+    assert.equal(callCount, 1);
+
+    const second = await cacheService.getOrSet('test:getOrSet', fetcher, 10);
+    assert.deepEqual(second, { computed: true });
+    assert.equal(callCount, 1, 'Fetcher should not be called when value is cached');
+  });
 });

@@ -16,12 +16,18 @@ const createSightingSchema = z.object({
     .number({ invalid_type_error: 'Longitude must be a valid number' })
     .min(-180, 'Longitude must be between -180 and 180 degrees')
     .max(180, 'Longitude must be between -180 and 180 degrees'),
-  speciesId: z.coerce.number().int().positive().optional(),
+  speciesId: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : val),
+    z.coerce.number().int().positive().optional()
+  ),
   observedAt: z.string().optional(),
 });
 
 const verifySightingSchema = z.object({
-  speciesId: z.coerce.number().int().positive().optional(),
+  speciesId: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : val),
+    z.coerce.number().int().positive().optional()
+  ),
   notes: z.string().max(500, 'Verification notes cannot exceed 500 characters').optional(),
 });
 
