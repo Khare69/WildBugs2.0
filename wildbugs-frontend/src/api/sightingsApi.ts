@@ -26,6 +26,10 @@ export const sightingsApi = {
       formData.append('observedAt', payload.observedAt);
     }
 
+    if (payload.notes) {
+      formData.append('notes', payload.notes);
+    }
+
     const response = await apiClient.post<SightingDetailResponse>('/sightings', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',

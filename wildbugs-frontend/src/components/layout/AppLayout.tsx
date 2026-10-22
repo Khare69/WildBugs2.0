@@ -85,10 +85,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             <h4 className="footer-heading">System Status</h4>
             <div className="footer-status-pill">
               <span className="status-dot" />
-              <span>Phase 1 Architecture Active</span>
+              <span>Phase 6 Production Architecture Active</span>
             </div>
             <p className="footer-notice">
-              Data protected with bcryptjs & JWT session persistence. PostGIS & AI Vision engine in Phase 2/3.
+              Data protected with bcryptjs & JWT session persistence. PostGIS & AI Vision engine active.
             </p>
           </div>
         </div>

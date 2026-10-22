@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import speciesApi from '../api/speciesApi';
 import SpeciesCard from '../components/species/SpeciesCard';
 import SpeciesFilterBar from '../components/species/SpeciesFilterBar';
+import useDebounce from '../hooks/useDebounce';
 
 export const SpeciesListPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,6 +11,9 @@ export const SpeciesListPage: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [page, setPage] = useState(1);
   const limit = 12;
+
+  // Debounce search keystrokes (300ms) with instant clear on empty (SOL-07, SEC-04)
+  const debouncedSearch = useDebounce(searchTerm, 300);
 
   // Fetch taxonomic families for filter dropdown
   const { data: familiesData } = useQuery({
@@ -25,10 +29,10 @@ export const SpeciesListPage: React.FC = () => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['speciesCatalog', { searchTerm, selectedFamily, selectedStatus, page, limit }],
+    queryKey: ['speciesCatalog', { searchTerm: debouncedSearch, selectedFamily, selectedStatus, page, limit }],
     queryFn: () =>
       speciesApi.getSpecies({
-        search: searchTerm || undefined,
+        search: debouncedSearch || undefined,
         family: selectedFamily || undefined,
         conservationStatus: selectedStatus || undefined,
         page,

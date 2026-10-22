@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet.markercluster';
@@ -106,7 +107,28 @@ interface MarkerClusterProps {
 
 export const MarkerCluster: React.FC<MarkerClusterProps> = ({ features }) => {
   const map = useMap();
+  const navigate = useNavigate();
   const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
+
+  // Event-delegated SPA routing for popup links inside Leaflet map container (SOL-06)
+  useEffect(() => {
+    const handlePopupClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest('a[href^="/sightings/"]');
+      if (target) {
+        e.preventDefault();
+        const href = target.getAttribute('href');
+        if (href) {
+          navigate(href);
+        }
+      }
+    };
+
+    const container = map.getContainer();
+    container.addEventListener('click', handlePopupClick);
+    return () => {
+      container.removeEventListener('click', handlePopupClick);
+    };
+  }, [map, navigate]);
 
   useEffect(() => {
     // Initialize cluster group with customized theme

@@ -58,7 +58,7 @@ export const HomePage: React.FC = () => {
               <span className="icon">🐞</span>
               <div>
                 <h4>Arthropod Monitoring Engine</h4>
-                <p>PostgreSQL 16 + Prisma v6 + Express + React 18</p>
+                <p>PostgreSQL 16 + Prisma v6 + Express + React 19</p>
               </div>
             </div>
 

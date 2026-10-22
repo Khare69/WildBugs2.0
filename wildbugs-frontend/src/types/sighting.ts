@@ -49,6 +49,7 @@ export interface CreateSightingRequest {
   longitude: number;
   speciesId?: number;
   observedAt?: string;
+  notes?: string;
 }
 
 export interface SightingDetailResponse {

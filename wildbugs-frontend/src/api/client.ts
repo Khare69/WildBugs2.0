@@ -37,7 +37,7 @@ apiClient.interceptors.response.use(
       useAuthStore.getState().logout();
 
       if (wasLoggedIn && typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-        toast.warning('Session expired. Please log in to continue.');
+        sessionStorage.setItem('auth_flash_message', 'Session expired. Please log in to continue.');
         window.location.href = '/login';
       }
     } else if (status === 429) {

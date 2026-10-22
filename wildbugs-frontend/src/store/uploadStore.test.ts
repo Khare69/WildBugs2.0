@@ -101,4 +101,13 @@ describe('Upload Store Unit Tests', () => {
     assert.equal(state.longitude, null);
     assert.equal(state.speciesId, null);
   });
+
+  it('updates and resets notes field correctly', () => {
+    const store = useUploadStore.getState();
+    store.setNotes('Found resting on a milkweed leaf.');
+    assert.equal(useUploadStore.getState().notes, 'Found resting on a milkweed leaf.');
+
+    store.reset();
+    assert.equal(useUploadStore.getState().notes, '');
+  });
 });

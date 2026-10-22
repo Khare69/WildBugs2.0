@@ -35,6 +35,7 @@ export const UploadForm: React.FC = () => {
     longitude,
     speciesId,
     observedAt,
+    notes,
     uploadProgress,
     isUploading,
     error,
@@ -161,6 +162,7 @@ export const UploadForm: React.FC = () => {
           longitude: lngNum,
           speciesId: speciesId ?? undefined,
           observedAt: observedAt ? new Date(observedAt).toISOString() : undefined,
+          notes: notes || undefined,
         },
         (progressEvent) => {
           if (progressEvent.total) {
