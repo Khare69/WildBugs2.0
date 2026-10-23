@@ -2,6 +2,7 @@ import test, { describe, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { cacheService } from '../../../src/services/cacheService';
 import { redisConfig, redisConnection } from '../../../src/database/redis';
+import { env } from '../../../src/config/env';
 
 describe('CacheService Unit Tests', () => {
   beforeEach(() => {
@@ -63,11 +64,23 @@ describe('CacheService Unit Tests', () => {
   });
 
   test('redisConfig retryStrategy calculates jittered backoff capped at 3000ms', () => {
-    const delay1 = (redisConfig.retryStrategy as any)(1);
-    assert.ok(typeof delay1 === 'number' && delay1 >= 150 && delay1 <= 350);
+    const originalEnv = env.NODE_ENV;
+    try {
+      // In test mode, returns null to avoid hanging test sockets
+      (env as any).NODE_ENV = 'test';
+      const delayInTest = (redisConfig.retryStrategy as any)(1);
+      assert.equal(delayInTest, null);
 
-    const delayLarge = (redisConfig.retryStrategy as any)(100);
-    assert.equal(delayLarge, 3000);
+      // In non-test mode, calculates jittered exponential backoff
+      (env as any).NODE_ENV = 'production';
+      const delay1 = (redisConfig.retryStrategy as any)(1);
+      assert.ok(typeof delay1 === 'number' && delay1 >= 150 && delay1 <= 350);
+
+      const delayLarge = (redisConfig.retryStrategy as any)(100);
+      assert.equal(delayLarge, 3000);
+    } finally {
+      (env as any).NODE_ENV = originalEnv;
+    }
   });
 
   test('scanStream invalidation handles stream error event without crashing', async () => {
