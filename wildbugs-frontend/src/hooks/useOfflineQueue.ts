@@ -133,10 +133,15 @@ export const useOfflineQueue = (): UseOfflineQueueResult => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Initial queue check
-    refreshQueueState();
+    // Initial queue check via async non-blocking initializer
+    let mounted = true;
+    const init = async () => {
+      if (mounted) await refreshQueueState();
+    };
+    void init();
 
     return () => {
+      mounted = false;
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };

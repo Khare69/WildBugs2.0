@@ -8,15 +8,15 @@ export function useDebounce<T>(value: T, delayMs = 300): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
-    // Instant update when value is cleared or reset to prevent filter latency
-    if (value === '' || value === null || (Array.isArray(value) && value.length === 0)) {
-      setDebouncedValue(value);
-      return;
-    }
+    // Instant dispatch (0ms) when value is cleared or reset to prevent filter latency without synchronous effect setState
+    const delay =
+      value === '' || value === null || (Array.isArray(value) && value.length === 0)
+        ? 0
+        : delayMs;
 
     const handler = setTimeout(() => {
       setDebouncedValue(value);
-    }, delayMs);
+    }, delay);
 
     return () => {
       clearTimeout(handler);

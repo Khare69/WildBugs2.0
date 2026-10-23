@@ -20,9 +20,9 @@ const app: Express = express();
 
 // Middleware Stack
 const corsOrigins =
-  env.CORS_ORIGIN === '*'
-    ? '*'
-    : env.CORS_ORIGIN.split(',').map((origin) => origin.trim());
+  env.CORS_ORIGIN && env.CORS_ORIGIN !== '*'
+    ? env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
+    : ['http://localhost:5173'];
 
 app.use(
   cors({
@@ -37,18 +37,24 @@ app.get('/api/health', async (_req: Request, res: Response) => {
   let dbHealthy = false;
   let redisHealthy = false;
 
-  // 1. Probe database connection
+  // 1. Probe database connection with timeout guard to prevent test stalls
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    await Promise.race([
+      prisma.$queryRaw`SELECT 1`,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('DB Timeout')), 1000)),
+    ]);
     dbHealthy = true;
   } catch {
     dbHealthy = false;
   }
 
-  // 2. Probe Redis connection
+  // 2. Probe Redis connection with timeout guard
   try {
     if (redisConnection && redisConnection.status === 'ready') {
-      await redisConnection.ping();
+      await Promise.race([
+        redisConnection.ping(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Redis Timeout')), 1000)),
+      ]);
       redisHealthy = true;
     }
   } catch {

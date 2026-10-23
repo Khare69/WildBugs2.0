@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import LoginForm from '../components/auth/LoginForm';
 
 export const LoginPage: React.FC = () => {
-  const [flashNotice, setFlashNotice] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [flashNotice] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
     const notice = sessionStorage.getItem('auth_flash_message');
     if (notice) {
-      setFlashNotice(notice);
       sessionStorage.removeItem('auth_flash_message');
+      return notice;
     }
-  }, []);
+    return null;
+  });
 
   return (
     <main className="auth-page-wrapper">

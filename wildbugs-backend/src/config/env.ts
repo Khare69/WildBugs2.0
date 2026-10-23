@@ -4,6 +4,11 @@ import { z } from 'zod';
 // Load variables from .env file
 dotenv.config();
 
+// Auto-detect test runner if invoked via node --test without explicit NODE_ENV
+if (process.argv.includes('--test') && !process.env.NODE_ENV) {
+  process.env.NODE_ENV = 'test';
+}
+
 const envSchema = z.object({
   PORT: z
     .string()
@@ -30,7 +35,7 @@ const envSchema = z.object({
     .default('7d'),
   CORS_ORIGIN: z
     .string()
-    .default('*'),
+    .default('http://localhost:5173'),
   CLOUDINARY_CLOUD_NAME: z
     .string()
     .optional()
