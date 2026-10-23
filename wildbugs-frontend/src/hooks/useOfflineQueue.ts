@@ -4,14 +4,21 @@ import {
   enqueueOfflineSighting,
   processOfflineQueue,
   clearOfflineQueue,
+  calculateQueueMetrics,
   type QueuedSighting,
   type EnqueueSightingInput,
+  type OfflineQueueMetrics,
 } from '../utils/offlineQueue';
 import { sightingsApi } from '../api/sightingsApi';
+
+export type { OfflineQueueMetrics };
+export { calculateQueueMetrics };
 
 export interface UseOfflineQueueResult {
   isOnline: boolean;
   queueCount: number;
+  pendingCount: number;
+  failedCount: number;
   isSyncing: boolean;
   queue: QueuedSighting[];
   syncNow: () => Promise<{ succeeded: number; failed: number; total: number }>;
@@ -24,19 +31,21 @@ export const useOfflineQueue = (): UseOfflineQueueResult => {
   const [isOnline, setIsOnline] = useState<boolean>(() => {
     return typeof navigator !== 'undefined' ? navigator.onLine : true;
   });
-  const [queueCount, setQueueCount] = useState<number>(0);
   const [queue, setQueue] = useState<QueuedSighting[]>([]);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [lastSyncMessage, setLastSyncMessage] = useState<string | null>(null);
 
   const isSyncingRef = useRef<boolean>(false);
 
+  // Status-filtered badge counters: exclude quarantined/failed items from pending badge
+  const { pendingCount, failedCount } = calculateQueueMetrics(queue);
+  const queueCount = pendingCount;
+
   // Refresh local state representation of the queue
   const refreshQueueState = useCallback(async () => {
     try {
       const items = await getOfflineQueue();
       setQueue(items);
-      setQueueCount(items.length);
     } catch (err) {
       console.warn('[useOfflineQueue] Error refreshing queue count:', err);
     }
@@ -136,6 +145,8 @@ export const useOfflineQueue = (): UseOfflineQueueResult => {
   return {
     isOnline,
     queueCount,
+    pendingCount,
+    failedCount,
     isSyncing,
     queue,
     syncNow,

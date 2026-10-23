@@ -29,7 +29,9 @@ export const SightingDetailPage: React.FC = () => {
     // Poll every 3 seconds while sighting status is PENDING (waiting for AI worker)
     refetchInterval: (query) => {
       const status = query.state.data?.data?.sighting?.status;
-      return status === 'PENDING' ? 3000 : false;
+      const isPending = status === 'PENDING';
+      // Circuit breaker: stop polling after 10 attempts (30s) to prevent 429 rate limit lockouts
+      return isPending && query.state.dataUpdateCount < 10 ? 3000 : false;
     },
   });
 

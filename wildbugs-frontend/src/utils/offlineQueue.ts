@@ -25,6 +25,28 @@ export interface EnqueueSightingInput {
   observedAt?: string;
 }
 
+export interface OfflineQueueMetrics {
+  total: number;
+  pendingCount: number;
+  failedCount: number;
+}
+
+/**
+ * Calculate status-filtered queue counters to isolate active items from quarantined dead-letter items
+ */
+export const calculateQueueMetrics = (queue: QueuedSighting[]): OfflineQueueMetrics => {
+  // Only count active items awaiting sync; exclude quarantined/failed items from pending badge
+  const pendingCount = queue.filter(
+    (item) => item.status === 'pending' || item.status === 'uploading'
+  ).length;
+  const failedCount = queue.filter((item) => item.status === 'failed').length;
+  return {
+    total: queue.length,
+    pendingCount,
+    failedCount,
+  };
+};
+
 const STORAGE_KEY = 'wildbugs_offline_sightings_queue';
 
 // In-memory fallback for non-browser / unit test environments
@@ -129,6 +151,8 @@ export const clearOfflineQueue = async (): Promise<void> => {
   }
 };
 
+export const MAX_OFFLINE_RETRIES = 5;
+
 /**
  * Process all pending items in the offline queue sequentially
  */
@@ -144,21 +168,75 @@ export const processOfflineQueue = async (
   let failed = 0;
   const remainingQueue: QueuedSighting[] = [];
 
-  for (const item of queue) {
+  for (let i = 0; i < queue.length; i++) {
+    const item = queue[i];
+
+    // Skip already quarantined items during standard processing loop
+    if (item.status === 'failed' && (item.retryCount || 0) >= MAX_OFFLINE_RETRIES) {
+      remainingQueue.push(item);
+      continue;
+    }
+
     try {
       item.status = 'uploading';
       await uploadHandler(item);
       succeeded++;
-      // Successfully uploaded: item is omitted from remainingQueue
+      // Polite spacing delay (250ms) prevents triggering rate limits on reconnect
+      await new Promise((resolve) => setTimeout(resolve, 250));
     } catch (err: unknown) {
       failed++;
-      item.status = 'failed';
-      item.retryCount = (item.retryCount || 0) + 1;
+      const isRateLimited =
+        (err as { response?: { status?: number }; status?: number })?.response?.status === 429 ||
+        (err as { response?: { status?: number }; status?: number })?.status === 429;
+
       item.errorMessage = err instanceof Error ? err.message : 'Upload failed';
+
+      // HTTP 429 Awareness & Backoff Pause: do not burn retries on rate limits
+      if (isRateLimited) {
+        item.status = 'pending';
+        console.warn(`[OfflineQueue] Rate limit encountered during offline sync on item ${item.id}. Pausing queue.`);
+        remainingQueue.push(item);
+        // Retain remaining unattempted items without modification
+        for (let j = i + 1; j < queue.length; j++) {
+          remainingQueue.push(queue[j]);
+        }
+        break;
+      }
+
+      item.retryCount = (item.retryCount || 0) + 1;
+
+      // Quarantine items exceeding max retries to break infinite replay loops
+      if (item.retryCount >= MAX_OFFLINE_RETRIES) {
+        item.status = 'failed';
+        console.warn(`[OfflineQueue] Item ${item.id} quarantined after ${item.retryCount} failed attempts.`);
+      } else {
+        item.status = 'pending';
+      }
       remainingQueue.push(item);
     }
   }
 
   await persistQueue(remainingQueue);
   return { succeeded, failed, total: queue.length };
+};
+
+/**
+ * Discard a quarantined item from the offline queue
+ */
+export const discardQuarantinedItem = async (id: string): Promise<void> => {
+  await removeFromOfflineQueue(id);
+};
+
+/**
+ * Reset retry count and status of a quarantined item to re-attempt sync
+ */
+export const retryQuarantinedItem = async (id: string): Promise<void> => {
+  const queue = await getOfflineQueue();
+  const item = queue.find((i) => i.id === id);
+  if (item) {
+    item.status = 'pending';
+    item.retryCount = 0;
+    item.errorMessage = undefined;
+    await persistQueue(queue);
+  }
 };
