@@ -4,6 +4,8 @@ import {
   enqueueOfflineSighting,
   processOfflineQueue,
   clearOfflineQueue,
+  discardQuarantinedItem,
+  retryQuarantinedItem,
   calculateQueueMetrics,
   type QueuedSighting,
   type EnqueueSightingInput,
@@ -24,6 +26,9 @@ export interface UseOfflineQueueResult {
   syncNow: () => Promise<{ succeeded: number; failed: number; total: number }>;
   addToQueue: (input: EnqueueSightingInput) => Promise<QueuedSighting>;
   clearQueue: () => Promise<void>;
+  discardItem: (id: string) => Promise<void>;
+  retryItem: (id: string) => Promise<void>;
+  discardAllFailed: () => Promise<void>;
   lastSyncMessage: string | null;
 }
 
@@ -147,6 +152,34 @@ export const useOfflineQueue = (): UseOfflineQueueResult => {
     };
   }, [syncNow, refreshQueueState]);
 
+  // Discard a single quarantined item
+  const discardItem = useCallback(
+    async (id: string): Promise<void> => {
+      await discardQuarantinedItem(id);
+      await refreshQueueState();
+    },
+    [refreshQueueState]
+  );
+
+  // Retry a single quarantined item
+  const retryItem = useCallback(
+    async (id: string): Promise<void> => {
+      await retryQuarantinedItem(id);
+      await refreshQueueState();
+    },
+    [refreshQueueState]
+  );
+
+  // Discard all failed items from queue
+  const discardAllFailed = useCallback(async (): Promise<void> => {
+    const items = await getOfflineQueue();
+    const failedItems = items.filter((item) => item.status === 'failed');
+    for (const item of failedItems) {
+      await discardQuarantinedItem(item.id);
+    }
+    await refreshQueueState();
+  }, [refreshQueueState]);
+
   return {
     isOnline,
     queueCount,
@@ -157,6 +190,9 @@ export const useOfflineQueue = (): UseOfflineQueueResult => {
     syncNow,
     addToQueue,
     clearQueue,
+    discardItem,
+    retryItem,
+    discardAllFailed,
     lastSyncMessage,
   };
 };

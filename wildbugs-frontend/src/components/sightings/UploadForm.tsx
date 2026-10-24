@@ -15,8 +15,10 @@ export const UploadForm: React.FC = () => {
   const {
     isOnline,
     queueCount,
+    failedCount,
     addToQueue,
     syncNow,
+    discardAllFailed,
     isSyncing,
     lastSyncMessage,
   } = useOfflineQueue();
@@ -239,6 +241,41 @@ export const UploadForm: React.FC = () => {
               {isSyncing ? '🔄 Syncing...' : '⚡ Sync Now'}
             </button>
           )}
+        </div>
+      )}
+
+      {/* Quarantined Failed Items Management Banner (SEC-02) */}
+      {failedCount > 0 && (
+        <div
+          className="upload-alert-offline"
+          style={{
+            borderColor: 'rgba(239, 68, 68, 0.4)',
+            backgroundColor: 'rgba(239, 68, 68, 0.08)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+          role="alert"
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="alert-icon">⚠️</span>
+            <div className="alert-body">
+              <strong>{failedCount}</strong> offline {failedCount === 1 ? 'item' : 'items'} failed upload validation and {failedCount === 1 ? 'was' : 'were'} quarantined.
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn-queue-sync"
+            style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.2)',
+              color: '#f87171',
+              borderColor: 'rgba(239, 68, 68, 0.4)',
+            }}
+            onClick={() => void discardAllFailed()}
+            title="Discard failed queue items to clear storage"
+          >
+            🗑️ Discard Failed
+          </button>
         </div>
       )}
 
